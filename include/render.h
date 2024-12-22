@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include <map>
+#include <vector>
 #include <SDL.h>
 #undef main
 #include <SDL_ttf.h>
@@ -88,6 +89,11 @@ public:
 	// if the state is normal, the normal texture will be rendered and if the state is pressed, the pressed texture will be rendered
 	void renderAlphabetLetters();
 
+	// alphabet properties getters
+	std::map<char, std::vector<SDL_Texture*>> getAlphabetTextures() const;
+	std::map<char, SDL_Rect*> getAlphabetPositions() const;
+	std::map<char, bool> getAlphabetStates() const;
+
 private:
 	SDL_Window* window;
 	SDL_Renderer* renderer;
@@ -112,7 +118,7 @@ private:
 	// a map to store the textures of the alphabet letters
 	// the key will be the alphabet letter and the value will be an array of SDL_Texture pointers
 	// the array will have two elements, one for the normal state and one for the pressed state
-	std::map<char, SDL_Texture*> alphabet_textures;
+	std::map<char, std::vector<SDL_Texture*>> alphabet_textures;
 	// two colors for the alphabet letters, one for the normal state and one for the pressed state
 	SDL_Color normal_alphabet_color;
 	SDL_Color pressed_alphabet_color;

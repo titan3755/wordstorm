@@ -68,7 +68,7 @@ void Application::run() {
 	render.setupTimerText(TTF_OpenFont("assets/KOMIKAX.ttf", 24), "Time: 0", 10, 70);
 	render.setupAlphabetTextures(TTF_OpenFont("assets/HeyComic.ttf", 24));
 	render.setupAlphabetPositions();
-    char alphabet[] = "abcdefghijklmnopqrstuvwxyz";
+    char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     render.setupAlphabetStates(alphabet, 26);
 	SDL_Event event;
 	while (running) {
@@ -77,10 +77,12 @@ void Application::run() {
 				running = false;
 			}
 			if (event.type == SDL_KEYDOWN) {
-				for (int i = 0; i < 26; i++) {
-					if (event.key.keysym.sym == alphabet[i]) {
-						render.updateAlphabetStates(alphabet[i]);
-					}
+				char key = static_cast<char>(event.key.keysym.sym);
+				if (key >= 'a' && key <= 'z') { // Ensure it's a lowercase letter
+					std::cout << "Key pressed: " << key << std::endl;
+					// convert the key to uppercase
+					key = toupper(key);
+					render.updateAlphabetStates(key);
 				}
 			}
 		}
@@ -88,6 +90,7 @@ void Application::run() {
 		SDL_SetRenderDrawColor(renderer, 56, 69, 222, 255);
 		SDL_RenderClear(renderer);
 
+		// render the components
 		render.renderLowerScreenBackground();
 		render.renderScreenHorizontalDivider();
 		render.renderUpperScreenBackground();

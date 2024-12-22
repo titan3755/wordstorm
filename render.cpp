@@ -35,10 +35,10 @@ Render::Render(SDL_Window* window, SDL_Renderer* renderer, int scrn_width, int s
 	this->timer_text_rect.w = 0;
 	this->timer_text_rect.h = 0;
 	this->alphabet_positions = std::map<char, SDL_Rect*>();
-	this->alphabet_textures = std::map<char, SDL_Texture*>();
+	this->alphabet_textures = std::map<char, std::vector<SDL_Texture*>>();
 	this->alphabet_states = std::map<char, bool>(); // true if the alphabet is pressed, false otherwise
 	this->normal_alphabet_color = { 255, 255, 255, 255 };
-	this->pressed_alphabet_color = { 0, 0, 0, 255 };
+	this->pressed_alphabet_color = { 255, 0, 0, 255 };
 }
 
 // destructor
@@ -184,7 +184,7 @@ void Render::setupTimerText(TTF_Font* font, std::string text, int x, int y) {
 
 // create the alphabet textures
 void Render::setupAlphabetTextures(TTF_Font* font) {
-	// create the alphabet textures
+	// create the unpressed alphabet textures
 	for (char c = 'A'; c <= 'Z'; c++) {
 		// create the alphabet texture
 		SDL_Surface* text_surface = TTF_RenderText_Solid(font, std::string(1, c).c_str(), normal_alphabet_color);
@@ -204,8 +204,34 @@ void Render::setupAlphabetTextures(TTF_Font* font) {
 			std::cout << "SDL_CreateTextureFromSurface Success!" << std::endl;
 		}
 
+		// add the texture to the map by accessing the vector inside the map
+		alphabet_textures[c].push_back(text_texture);
+
+		// cleanup the surface
+		SDL_FreeSurface(text_surface);
+	}
+	// create the pressed alphabet textures
+	for (char c = 'A'; c <= 'Z'; c++) {
+		// create the alphabet texture
+		SDL_Surface* text_surface = TTF_RenderText_Solid(font, std::string(1, c).c_str(), pressed_alphabet_color);
+		if (text_surface == nullptr) {
+			std::cerr << "TTF_RenderText_Solid Error: " << TTF_GetError() << std::endl;
+			return;
+		}
+		else {
+			std::cout << "TTF_RenderText_Solid Success!" << std::endl;
+		}
+		SDL_Texture* text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
+		if (text_texture == nullptr) {
+			std::cerr << "SDL_CreateTextureFromSurface Error: " << SDL_GetError() << std::endl;
+			return;
+		}
+		else {
+			std::cout << "SDL_CreateTextureFromSurface Success!" << std::endl;
+		}
+
 		// add the texture to the map
-		alphabet_textures[c] = text_texture;
+		alphabet_textures[c].push_back(text_texture);
 
 		// cleanup the surface
 		SDL_FreeSurface(text_surface);
@@ -374,89 +400,33 @@ void Render::updateTimerPosition(int x, int y) {
 // discarding the old ones
 // the argument is an array of characters
 void Render::updateAlphabetStates(char keys[], int size) {
-	// reset the previous states
+	// efficiently update the state of the alphabet letters
 	for (auto it = alphabet_states.begin(); it != alphabet_states.end(); it++) {
-		alphabet_states[it->first] = false;
+		it->second = false;
 	}
 
-	// update the new states
+	// update the state of the alphabet letters
 	for (int i = 0; i < size; i++) {
 		alphabet_states[keys[i]] = true;
 	}
-
-	// erase the old textures
-	cleanupAlphabetTextures();
-
-	// create the new textures
-	for (auto it = alphabet_states.begin(); it != alphabet_states.end(); it++) {
-		// create the alphabet texture
-		SDL_Surface* text_surface = TTF_RenderText_Solid(score_text_font, std::string(1, it->first).c_str(), it->second ? pressed_alphabet_color : normal_alphabet_color);
-		if (text_surface == nullptr) {
-			std::cerr << "TTF_RenderText_Solid Error: " << TTF_GetError() << std::endl;
-			return;
-		}
-		else {
-			std::cout << "TTF_RenderText_Solid Success!" << std::endl;
-		}
-		SDL_Texture* text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
-		if (text_texture == nullptr) {
-			std::cerr << "SDL_CreateTextureFromSurface Error: " << SDL_GetError() << std::endl;
-			return;
-		}
-		else {
-			std::cout << "SDL_CreateTextureFromSurface Success!" << std::endl;
-		}
-
-		// add the texture to the map
-		alphabet_textures[it->first] = text_texture;
-
-		// cleanup the surface
-		SDL_FreeSurface(text_surface);
-	}
+	
 }
 
 // an update function which will update the state of the alphabet letters
 // the argument will be the key which is pressed and the state of that key will be updated
 // the rest of the keys will be updated to the normal state
 void Render::updateAlphabetStates(char key) {
-	// reset the previous states
+	// update the state of the alphabet letters
 	for (auto it = alphabet_states.begin(); it != alphabet_states.end(); it++) {
-		alphabet_states[it->first] = false;
-	}
-
-	// update the new states
-	alphabet_states[key] = true;
-
-	// erase the old textures
-	cleanupAlphabetTextures();
-
-	// create the new textures
-	for (auto it = alphabet_states.begin(); it != alphabet_states.end(); it++) {
-		// create the alphabet texture
-		SDL_Surface* text_surface = TTF_RenderText_Solid(score_text_font, std::string(1, it->first).c_str(), it->second ? pressed_alphabet_color : normal_alphabet_color);
-		if (text_surface == nullptr) {
-			std::cerr << "TTF_RenderText_Solid Error: " << TTF_GetError() << std::endl;
-			return;
+		if (it->first == key) {
+			it->second = true;
 		}
 		else {
-			std::cout << "TTF_RenderText_Solid Success!" << std::endl;
+			it->second = false;
 		}
-		SDL_Texture* text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
-		if (text_texture == nullptr) {
-			std::cerr << "SDL_CreateTextureFromSurface Error: " << SDL_GetError() << std::endl;
-			return;
-		}
-		else {
-			std::cout << "SDL_CreateTextureFromSurface Success!" << std::endl;
-		}
-
-		// add the texture to the map
-		alphabet_textures[it->first] = text_texture;
-
-		// cleanup the surface
-		SDL_FreeSurface(text_surface);
 	}
 }
+
 
 // a function to update the positions of the alphabet letters on the screen
 // the argument will be a map which will have the key as the alphabet letter and the value as an SDL_Rect pointer
@@ -497,7 +467,9 @@ void Render::cleanupTimerText() {
 
 void Render::cleanupAlphabetTextures() {
 	for (auto it = alphabet_textures.begin(); it != alphabet_textures.end(); it++) {
-		SDL_DestroyTexture(it->second);
+		for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++) {
+			SDL_DestroyTexture(*it2);
+		}
 	}
 }
 
@@ -541,10 +513,31 @@ void Render::renderTimerText() {
 // the function will take the current state of the alphabet letters and render them accordingly
 // if the state is normal, the normal texture will be rendered and if the state is pressed, the pressed texture will be rendered
 void Render::renderAlphabetLetters() {
-	for (auto it = alphabet_positions.begin(); it != alphabet_positions.end(); it++) {
-		SDL_Rect* rect = it->second;
-		SDL_Texture* texture = alphabet_textures[it->first];
-		SDL_RenderCopy(renderer, texture, nullptr, rect);
+	// loop through the alphabet positions and states and render the alphabet letters
+	for (int i = 0; i < 26; i++) {
+		char c = 'A' + i;
+		SDL_Rect* rect = this->alphabet_positions[c];
+		SDL_Texture* texture = nullptr;
+		// print the states of the alphabet letters
+		if (this->alphabet_states[c]) {
+			texture = this->alphabet_textures[c][1];
+		}
+		else {
+			texture = this->alphabet_textures[c][0];
+		}
+		SDL_RenderCopy(this->renderer, texture, nullptr, rect);
 	}
 }
 
+// alphabet properties getters
+std::map<char, std::vector<SDL_Texture*>> Render::getAlphabetTextures() const {
+	return alphabet_textures;
+}
+
+std::map<char, SDL_Rect*> Render::getAlphabetPositions() const {
+	return alphabet_positions;
+}
+
+std::map<char, bool> Render::getAlphabetStates() const {
+	return alphabet_states;
+}
