@@ -60,16 +60,41 @@ void Application::init() {
 }
 
 void Application::run() {
+	Render render(window, renderer, scrn_width, scrn_height);
+	render.setupScreenHorizontalDivider();
+	render.setupUpperScreenBackground();
+	render.setupLowerScreenBackground();
+	render.setupScoreText(TTF_OpenFont("assets/KOMIKAX.ttf", 24), "Score: 0", 10, 10);
+	render.setupTimerText(TTF_OpenFont("assets/KOMIKAX.ttf", 24), "Time: 0", 10, 70);
+	render.setupAlphabetTextures(TTF_OpenFont("assets/HeyComic.ttf", 24));
+	render.setupAlphabetPositions();
+    char alphabet[] = "abcdefghijklmnopqrstuvwxyz";
+    render.setupAlphabetStates(alphabet, 26);
 	SDL_Event event;
 	while (running) {
 		while (SDL_PollEvent(&event)) {
 			if (event.type == SDL_QUIT) {
 				running = false;
 			}
+			if (event.type == SDL_KEYDOWN) {
+				for (int i = 0; i < 26; i++) {
+					if (event.key.keysym.sym == alphabet[i]) {
+						render.updateAlphabetStates(alphabet[i]);
+					}
+				}
+			}
 		}
 
 		SDL_SetRenderDrawColor(renderer, 56, 69, 222, 255);
 		SDL_RenderClear(renderer);
+
+		render.renderLowerScreenBackground();
+		render.renderScreenHorizontalDivider();
+		render.renderUpperScreenBackground();
+		render.renderScoreText();
+		render.renderTimerText();
+		render.renderAlphabetLetters();
+
 		SDL_RenderPresent(renderer);
 	}
 }

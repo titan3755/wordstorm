@@ -4,6 +4,7 @@
 #define APPLICATION_H
 
 #include <iostream>
+#include <render.h>
 #include <string>
 #include <SDL.h>
 #undef main
