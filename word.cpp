@@ -20,13 +20,12 @@ Word::~Word() {
 
 void Word::setupWord() {
 	// create a surface from the word
-	SDL_Surface* surface = TTF_RenderText_Solid(font, word.c_str(), { 0, 0, 0, 255 });
+	// create random color
+	SDL_Color rand_color = { 0 + rand() % (255 - 0 + 1), 0 + rand() % (255 - 0 + 1), 0 + rand() % (255 - 0 + 1), 255 };
+	SDL_Surface* surface = TTF_RenderText_Solid(font, word.c_str(), rand_color);
 	if (surface == nullptr) {
 		std::cerr << "TTF_RenderText_Solid Error: " << TTF_GetError() << std::endl;
 		return;
-	}
-	else {
-		std::cout << "TTF_RenderText_Solid Success!" << std::endl;
 	}
 
 	// create a texture from the surface
@@ -35,13 +34,10 @@ void Word::setupWord() {
 		std::cerr << "SDL_CreateTextureFromSurface Error: " << SDL_GetError() << std::endl;
 		return;
 	}
-	else {
-		std::cout << "SDL_CreateTextureFromSurface Success!" << std::endl;
-	}
 
 	// set the position of the word (randomly set the y have and set the x value as just outside the screen at right side)
 	position.x = scrn_width;
-	position.y = (scrn_height / 2) + rand() % (scrn_height - (scrn_height / 2) + 1);
+	position.y = 30 + rand() % ((((scrn_height * 75) / 100) - 45) - 30 + 1);
 	position.w = surface->w;
 	position.h = surface->h;
 
@@ -54,6 +50,9 @@ void Word::setupWord() {
 
 void Word::updateWord(float dt) {
 	// update the position of the word
+	if (position.x == 0) {
+		position.x -= 100;
+	}
 	position.x -= velocity * dt;
 }
 

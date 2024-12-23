@@ -62,10 +62,11 @@ void Application::init() {
 void Application::run() {
 	Render render(window, renderer, scrn_width, scrn_height);
 	render.setupScreenHorizontalDivider();
+	render.setupUpperScreenLeftmostVerticalDivider();
 	render.setupUpperScreenBackground();
 	render.setupLowerScreenBackground();
-	render.setupScoreText(TTF_OpenFont("assets/KOMIKAX.ttf", 24), "Score: 0", 10, 10);
-	render.setupTimerText(TTF_OpenFont("assets/KOMIKAX.ttf", 24), "Time: 0", 10, 70);
+	render.setupScoreText(TTF_OpenFont("assets/KOMIKAX.ttf", 24), "Score: 0", 30, 10);
+	render.setupTimerText(TTF_OpenFont("assets/KOMIKAX.ttf", 24), "Time: 0", 200, 10);
 	render.setupAlphabetTextures(TTF_OpenFont("assets/HeyComic.ttf", 24));
 	render.setupAlphabetPositions();
     char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -99,25 +100,28 @@ void Application::run() {
 			}
 		}
 
-		// setup words every 5 secs
-		if (SDL_GetTicks() % 5000 == 0) {
-			std::string word = "HELLO";
-			render.setupWord(word);
+		// spawn a word every 2 seconds
+		static float timer = 0.0f;
+		timer += 0.013333f; // 75 fps (1/75 = 0.01333...f)
+		if (timer >= 2.0f) {
+			timer = 0.0f;
+			render.setupWord("HELLO");
 		}
 
 		// update the components
 		render.updateAlphabetStates(keyStates);
-		render.updateWords(0.016f); // 60 fps (1/60 = 0.016f)
+		render.updateWords(0.013333f); // 75 fps (1/75 = 0.01333...f)
 
 		// render the components
 
-		SDL_SetRenderDrawColor(renderer, 56, 69, 222, 255);
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 		SDL_RenderClear(renderer);
 
 		// render the components
 		render.renderLowerScreenBackground();
 		render.renderScreenHorizontalDivider();
 		render.renderUpperScreenBackground();
+		render.renderUpperScreenLeftmostVerticalDivider();
 		render.renderScoreText();
 		render.renderTimerText();
 		render.renderAlphabetLetters();

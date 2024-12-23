@@ -21,6 +21,7 @@ public:
 
 	// setup functions for different components
 	void setupScreenHorizontalDivider();
+	void setupUpperScreenLeftmostVerticalDivider();
 	void setupUpperScreenBackground();
 	void setupLowerScreenBackground();
 	void setupScoreText(TTF_Font* font, std::string text, int x, int y);
@@ -98,6 +99,7 @@ public:
 
 	// render functions for different components (will be used in the game loop)
 	void renderScreenHorizontalDivider();
+	void renderUpperScreenLeftmostVerticalDivider();
 	void renderUpperScreenBackground();
 	void renderLowerScreenBackground();
 	void renderScoreText();
@@ -124,6 +126,8 @@ private:
 	SDL_Rect* upper_screen_background;
 	SDL_Rect* lower_screen_background;
 	SDL_Color* horizontal_divider_color;
+	SDL_Rect* upper_screen_leftmost_vertical_divider;
+	SDL_Color* upper_screen_leftmost_vertical_divider_color;
 	SDL_Color* upper_screen_background_color;
 	SDL_Color* lower_screen_background_color;
 	TTF_Font* score_text_font;

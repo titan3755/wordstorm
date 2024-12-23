@@ -71,14 +71,29 @@ Render::~Render() {
 void Render::setupScreenHorizontalDivider() {
 	horizontal_divider = new SDL_Rect();
 	horizontal_divider->x = 0;
-	horizontal_divider->y = scrn_height / 2;
+	horizontal_divider->y = (scrn_height * 75) / 100;
 	horizontal_divider->w = scrn_width;
-	horizontal_divider->h = 2;
+	horizontal_divider->h = 20;
 	horizontal_divider_color = new SDL_Color();
-	horizontal_divider_color->r = 90;
-	horizontal_divider_color->g = 45;
-	horizontal_divider_color->b = 45;
+	horizontal_divider_color->r = 127;
+	horizontal_divider_color->g = 0;
+	horizontal_divider_color->b = 255;
 	horizontal_divider_color->a = 255;
+}
+
+// the leftmost upper screen divider (this is the place where the words will disappear)
+// (note: remember to relocate the score and timer text to the upper screen)
+void Render::setupUpperScreenLeftmostVerticalDivider() {
+	upper_screen_leftmost_vertical_divider = new SDL_Rect();
+	upper_screen_leftmost_vertical_divider->x = 0;
+	upper_screen_leftmost_vertical_divider->y = 0;
+	upper_screen_leftmost_vertical_divider->w = 20;
+	upper_screen_leftmost_vertical_divider->h = scrn_height * 75 / 100;
+	upper_screen_leftmost_vertical_divider_color = new SDL_Color();
+	upper_screen_leftmost_vertical_divider_color->r = 255;
+	upper_screen_leftmost_vertical_divider_color->g = 0;
+	upper_screen_leftmost_vertical_divider_color->b = 0;
+	upper_screen_leftmost_vertical_divider_color->a = 255;
 }
 
 // the background of the upper screen
@@ -87,7 +102,7 @@ void Render::setupUpperScreenBackground() {
 	upper_screen_background->x = 0;
 	upper_screen_background->y = 0;
 	upper_screen_background->w = scrn_width;
-	upper_screen_background->h = scrn_height / 2;
+	upper_screen_background->h = (scrn_height * 75) / 100;
 	upper_screen_background_color = new SDL_Color();
 	upper_screen_background_color->r = 255;
 	upper_screen_background_color->g = 255;
@@ -99,9 +114,9 @@ void Render::setupUpperScreenBackground() {
 void Render::setupLowerScreenBackground() {
 	lower_screen_background = new SDL_Rect();
 	lower_screen_background->x = 0;
-	lower_screen_background->y = scrn_height / 2;
+	lower_screen_background->y = (scrn_height * 75) / 100;
 	lower_screen_background->w = scrn_width;
-	lower_screen_background->h = scrn_height / 2;
+	lower_screen_background->h = (scrn_height * 25) / 100;
 	lower_screen_background_color = new SDL_Color();
 	lower_screen_background_color->r = 0;
 	lower_screen_background_color->g = 0;
@@ -281,7 +296,7 @@ void Render::setupAlphabetStates(char keys[], int size) {
 
 // setup the words
 void Render::setupWord(std::string word) {
-	Word* w = new Word(renderer, TTF_OpenFont("assets/KOMIKAX.ttf", 24), word, scrn_width, scrn_height);
+	Word* w = new Word(renderer, TTF_OpenFont("assets/KOMIKAX.ttf", 30), word, scrn_width, scrn_height);
 	w->setupWord();
 	words.push_back(w);
 }
@@ -514,6 +529,12 @@ void Render::cleanupAlphabetStates() {
 void Render::renderScreenHorizontalDivider() {
 	SDL_SetRenderDrawColor(renderer, horizontal_divider_color->r, horizontal_divider_color->g, horizontal_divider_color->b, horizontal_divider_color->a);
 	SDL_RenderFillRect(renderer, horizontal_divider);
+}
+
+// render the leftmost vertical divider of the upper screen
+void Render::renderUpperScreenLeftmostVerticalDivider() {
+	SDL_SetRenderDrawColor(renderer, upper_screen_leftmost_vertical_divider_color->r, upper_screen_leftmost_vertical_divider_color->g, upper_screen_leftmost_vertical_divider_color->b, upper_screen_leftmost_vertical_divider_color->a);
+	SDL_RenderFillRect(renderer, upper_screen_leftmost_vertical_divider);
 }
 
 // render the background of the upper screen
