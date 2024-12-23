@@ -8,6 +8,8 @@ Render::Render(SDL_Window* window, SDL_Renderer* renderer, int scrn_width, int s
 	this->scrn_height = scrn_height;
 	this->horizontal_divider = nullptr; // Initialize horizontal_divider
 	this->upper_screen_background = nullptr;
+	this->upper_screen_leftmost_vertical_divider = nullptr;
+	this->upper_screen_leftmost_vertical_divider_color = nullptr;
 	this->lower_screen_background = nullptr;
 	this->horizontal_divider_color = nullptr;
 	this->upper_screen_background_color = nullptr;
@@ -434,7 +436,7 @@ void Render::updateAlphabetStates(char keys[], int size) {
 	for (int i = 0; i < size; i++) {
 		alphabet_states[keys[i]] = true;
 	}
-	
+
 }
 
 // an update function which will update the state of the alphabet letters
@@ -503,7 +505,7 @@ void Render::cleanupScoreText() {
 
 void Render::cleanupTimerText() {
 	SDL_DestroyTexture(timer_text_texture);
-}	
+}
 
 void Render::cleanupAlphabetTextures() {
 	for (auto it = alphabet_textures.begin(); it != alphabet_textures.end(); it++) {
@@ -598,4 +600,23 @@ std::map<char, SDL_Rect*> Render::getAlphabetPositions() const {
 
 std::map<char, bool> Render::getAlphabetStates() const {
 	return alphabet_states;
+}
+
+// get words
+
+std::vector<Word*> Render::getWords() const {
+	return words;
+}
+
+// getters for the score text
+
+std::string Render::getScoreText() const {
+	return score_text;
+}
+
+// setters
+
+// set words
+void Render::setWords(std::vector<Word*> words) {
+	this->words = words;
 }

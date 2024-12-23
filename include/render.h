@@ -112,10 +112,20 @@ public:
 	// the function will take the word and render it on the screen
 	void renderWords();
 
+	// setters
+	// set words
+	void setWords(std::vector<Word*> words);
+
 	// alphabet properties getters
 	std::map<char, std::vector<SDL_Texture*>> getAlphabetTextures() const;
 	std::map<char, SDL_Rect*> getAlphabetPositions() const;
 	std::map<char, bool> getAlphabetStates() const;
+
+	// get words
+	std::vector<Word*> getWords() const;
+
+	// getters for the score text
+	std::string getScoreText() const;
 
 private:
 	SDL_Window* window;

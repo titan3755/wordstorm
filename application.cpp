@@ -1,5 +1,8 @@
 #include <application.h>
 
+const int TARGET_FRAME_RATE = 144;
+const int FRAME_TIME = 1000 / TARGET_FRAME_RATE;
+
 Application::Application(int scrn_width, int scrn_height, std::string base_title) {
 	this->scrn_width = scrn_width;
 	this->scrn_height = scrn_height;
@@ -69,15 +72,18 @@ void Application::run() {
 	render.setupTimerText(TTF_OpenFont("assets/KOMIKAX.ttf", 24), "Time: 0", 200, 10);
 	render.setupAlphabetTextures(TTF_OpenFont("assets/HeyComic.ttf", 24));
 	render.setupAlphabetPositions();
-    char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    render.setupAlphabetStates(alphabet, 26);
+	char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	render.setupAlphabetStates(alphabet, 26);
 	SDL_Event event;
 	// key pressed
 	std::map<char, bool> keyStates;
+	// this string will store the keys which are pressed
+	std::string key_pressed_str;
 	for (int i = 0; i < 26; i++) {
 		keyStates[alphabet[i]] = false;
 	}
 	while (running) {
+		Uint32 frameStart = SDL_GetTicks();
 		while (SDL_PollEvent(&event)) {
 			if (event.type == SDL_QUIT) {
 				running = false;
@@ -89,6 +95,7 @@ void Application::run() {
 					key = toupper(key);
 					keyStates[key] = true;
 				}
+				key_pressed_str += key;
 			}
 			if (event.type == SDL_KEYUP) {
 				char key = static_cast<char>(event.key.keysym.sym);
@@ -108,9 +115,26 @@ void Application::run() {
 			render.setupWord("HELLO");
 		}
 
+		// detect if one of the words in the word vector is a substring of the key_pressed_str
+		// if multiple words are substrings of the key_pressed_str, the word which is the first substring will be removed
+		// if one substring corresponds to multiple words, the first word which is a substring will be removed
+		std::vector<Word*> words = render.getWords();
+		// set the words
+		for (int i = 0; i < words.size(); i++) {
+			std::string word = words[i]->getWord();
+			if (key_pressed_str.find(word) != std::string::npos) {
+				// remove the word
+				words.erase(words.begin() + i);
+				// update the words
+				render.setWords(words);
+				key_pressed_str.erase(key_pressed_str.find(word), word.length());
+				break;
+			}
+		}
+
 		// update the components
 		render.updateAlphabetStates(keyStates);
-		render.updateWords(0.013333f); // 75 fps (1/75 = 0.01333...f)
+		render.updateWords(0.016666f); // 75 fps (1/75 = 0.01333...f)
 
 		// render the components
 
@@ -128,6 +152,11 @@ void Application::run() {
 		render.renderWords();
 
 		SDL_RenderPresent(renderer);
+
+		Uint32 frameTime = SDL_GetTicks() - frameStart;
+		if (frameTime < FRAME_TIME) {
+			SDL_Delay(FRAME_TIME - frameTime);
+		}
 	}
 }
 

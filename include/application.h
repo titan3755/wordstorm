@@ -20,7 +20,7 @@ public:
 	void init();
 	void run();
 	void cleanup();
-	
+
 private:
 	int scrn_width;
 	int scrn_height;

@@ -1,4 +1,5 @@
 #pragma once
+#pragma once
 
 #ifndef WORD_H
 #define WORD_H
@@ -17,7 +18,7 @@ class Word {
 public:
 	Word(SDL_Renderer* renderer, TTF_Font* font, std::string word, int scrn_width, int scrn_height);
 	~Word();
-	
+
 	// setup will be done in the constructor
 	void setupWord();
 	// update functions for the word
