@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <render.h>
+#include <word.h>
 #include <string>
 #include <SDL.h>
 #undef main

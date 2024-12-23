@@ -71,6 +71,11 @@ void Application::run() {
     char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     render.setupAlphabetStates(alphabet, 26);
 	SDL_Event event;
+	// key pressed
+	std::map<char, bool> keyStates;
+	for (int i = 0; i < 26; i++) {
+		keyStates[alphabet[i]] = false;
+	}
 	while (running) {
 		while (SDL_PollEvent(&event)) {
 			if (event.type == SDL_QUIT) {
@@ -79,13 +84,32 @@ void Application::run() {
 			if (event.type == SDL_KEYDOWN) {
 				char key = static_cast<char>(event.key.keysym.sym);
 				if (key >= 'a' && key <= 'z') { // Ensure it's a lowercase letter
-					std::cout << "Key pressed: " << key << std::endl;
 					// convert the key to uppercase
 					key = toupper(key);
-					render.updateAlphabetStates(key);
+					keyStates[key] = true;
+				}
+			}
+			if (event.type == SDL_KEYUP) {
+				char key = static_cast<char>(event.key.keysym.sym);
+				if (key >= 'a' && key <= 'z') { // Ensure it's a lowercase letter
+					// convert the key to uppercase
+					key = toupper(key);
+					keyStates[key] = false;
 				}
 			}
 		}
+
+		// setup words every 5 secs
+		if (SDL_GetTicks() % 5000 == 0) {
+			std::string word = "HELLO";
+			render.setupWord(word);
+		}
+
+		// update the components
+		render.updateAlphabetStates(keyStates);
+		render.updateWords(0.016f); // 60 fps (1/60 = 0.016f)
+
+		// render the components
 
 		SDL_SetRenderDrawColor(renderer, 56, 69, 222, 255);
 		SDL_RenderClear(renderer);
@@ -97,6 +121,7 @@ void Application::run() {
 		render.renderScoreText();
 		render.renderTimerText();
 		render.renderAlphabetLetters();
+		render.renderWords();
 
 		SDL_RenderPresent(renderer);
 	}

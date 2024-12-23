@@ -7,6 +7,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <word.h>
 #include <SDL.h>
 #undef main
 #include <SDL_ttf.h>
@@ -43,6 +44,13 @@ public:
 	// the map will be stored in the private section of the class
 	// the state will be false if the key is not pressed and true if the key is pressed
 	void setupAlphabetStates(char keys[], int size);
+	// a setup function which will create the words shooting from the top portion of the screen and across it
+	// the function will take a word as an argument and create the textures and positions of the word
+	// the word will have a velocity, position, texture
+	// all of the above except the texture and position will be random within a certain range
+	// the texture will be generated as needed and the position will be somewhere outside the screen
+	// the angle will be such that the word will move across the viewable screen
+	void setupWord(std::string word);
 
 	// update functions for different components
 	void updateScoreText(std::string text);
@@ -60,10 +68,17 @@ public:
 	void updateAlphabetStates(char key);
 	// overload the above function to take an array of characters as an argument
 	void updateAlphabetStates(char keys[], int size);
+	// another overload which takes a map as an argument
+	// the map will have the key as the alphabet letter and the value as a boolean
+	void updateAlphabetStates(std::map<char, bool> states);
 	// a function to update the positions of the alphabet letters on the screen
 	// the argument will be a map which will have the key as the alphabet letter and the value as an SDL_Rect pointer
 	// the function will update the positions of the alphabet letters on the screen
 	void updateAlphabetPositions(std::map<char, SDL_Rect*> positions);
+	// a function to update the words shooting from the top portion of the screen and across it
+	// the word will have a velocity, position, texture
+	// the velocity and position will be updated in this function
+	void updateWords(float dt);
 
 	// cleanup functions for different components
 	void cleanupScreenHorizontalDivider();
@@ -77,6 +92,9 @@ public:
 	// a cleanup function which will cleanup the positions of the alphabet letters
 	// the function will take the map of the positions and cleanup all the positions
 	void cleanupAlphabetPositions();
+	// a cleanup function which will cleanup the states of the alphabet letters
+	// the function will take the map of the states and cleanup
+	void cleanupAlphabetStates();
 
 	// render functions for different components (will be used in the game loop)
 	void renderScreenHorizontalDivider();
@@ -88,6 +106,9 @@ public:
 	// the function will take the current state of the alphabet letters and render them accordingly
 	// if the state is normal, the normal texture will be rendered and if the state is pressed, the pressed texture will be rendered
 	void renderAlphabetLetters();
+	// a render function which will render the words shooting from the top portion of the screen and across it
+	// the function will take the word and render it on the screen
+	void renderWords();
 
 	// alphabet properties getters
 	std::map<char, std::vector<SDL_Texture*>> getAlphabetTextures() const;
@@ -128,6 +149,9 @@ private:
 	// a map to store the state of the alphabet letters, whether they are pressed or not
 	// the key will be the alphabet letter and the value will be a boolean
 	std::map<char, bool> alphabet_states;
+	// a map to store the words shooting from the top portion of the screen and across it
+	// the words will be an object of a class stored in a vector
+	std::vector<Word*> words;
 };
 
 #endif // RENDER_H

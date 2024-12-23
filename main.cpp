@@ -1,4 +1,6 @@
 #include <iostream>
+#include <cstdlib>
+#include <ctime>
 #include <application.h>
 #include <SDL.h>
 #undef main // SDL defines main, so we need to undefine it
@@ -10,6 +12,8 @@ constexpr int SCREEN_HEIGHT = 720;
 constexpr char BASE_TITLE[] = "WordStorm";
 
 int main(int argc, char* argv[]) {
+	// seed the random number generator
+	srand(static_cast<unsigned int>(time(nullptr)));
 	Application app(SCREEN_WIDTH, SCREEN_HEIGHT, BASE_TITLE);
 	app.init();
 	app.run();

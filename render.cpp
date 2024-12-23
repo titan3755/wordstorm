@@ -38,7 +38,8 @@ Render::Render(SDL_Window* window, SDL_Renderer* renderer, int scrn_width, int s
 	this->alphabet_textures = std::map<char, std::vector<SDL_Texture*>>();
 	this->alphabet_states = std::map<char, bool>(); // true if the alphabet is pressed, false otherwise
 	this->normal_alphabet_color = { 255, 255, 255, 255 };
-	this->pressed_alphabet_color = { 255, 0, 0, 255 };
+	this->pressed_alphabet_color = { 0, 255, 0, 255 };
+	this->words = std::vector<Word*>();
 }
 
 // destructor
@@ -57,6 +58,8 @@ Render::~Render() {
 	cleanupAlphabetTextures();
 	// cleanup the positions of the alphabet letters
 	cleanupAlphabetPositions();
+	// cleanup the states of the alphabet letters
+	cleanupAlphabetStates();
 	// cleanup the renderer and window (no need to cleanup the renderer and window here, as they will be cleaned up in the application class)
 	// SDL_DestroyRenderer(renderer);
 	// SDL_DestroyWindow(window);
@@ -276,6 +279,13 @@ void Render::setupAlphabetStates(char keys[], int size) {
 	}
 }
 
+// setup the words
+void Render::setupWord(std::string word) {
+	Word* w = new Word(renderer, TTF_OpenFont("assets/KOMIKAX.ttf", 24), word, scrn_width, scrn_height);
+	w->setupWord();
+	words.push_back(w);
+}
+
 // update functions for different components
 
 // update the score text
@@ -427,6 +437,21 @@ void Render::updateAlphabetStates(char key) {
 	}
 }
 
+// an update function which will update the state of the alphabet letters
+// the argument will be a map which will have the key as the alphabet letter and the value as a boolean
+void Render::updateAlphabetStates(std::map<char, bool> states) {
+	// update the state of the alphabet letters
+	for (auto it = alphabet_states.begin(); it != alphabet_states.end(); it++) {
+		it->second = states[it->first];
+	}
+}
+
+// update the words
+void Render::updateWords(float dt) {
+	for (int i = 0; i < words.size(); i++) {
+		words[i]->updateWord(dt);
+	}
+}
 
 // a function to update the positions of the alphabet letters on the screen
 // the argument will be a map which will have the key as the alphabet letter and the value as an SDL_Rect pointer
@@ -479,6 +504,10 @@ void Render::cleanupAlphabetPositions() {
 	}
 }
 
+void Render::cleanupAlphabetStates() {
+	alphabet_states.clear();
+}
+
 // render functions for different components (will be used in the game loop)
 
 // render the horizontal divider
@@ -526,6 +555,14 @@ void Render::renderAlphabetLetters() {
 			texture = this->alphabet_textures[c][0];
 		}
 		SDL_RenderCopy(this->renderer, texture, nullptr, rect);
+	}
+}
+
+// a render function which will render the words shooting from the top portion of the screen and across it
+// the function will take the word and render it on the screen
+void Render::renderWords() {
+	for (int i = 0; i < words.size(); i++) {
+		words[i]->renderWord();
 	}
 }
 
