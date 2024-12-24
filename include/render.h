@@ -21,6 +21,7 @@ public:
 	~Render();
 
 	// setup functions for different components
+	void setupTitleScreen(TTF_Font* font);
 	void setupScreenHorizontalDivider();
 	void setupUpperScreenLeftmostVerticalDivider();
 	void setupUpperScreenBackground();
@@ -54,13 +55,14 @@ public:
 	// the angle will be such that the word will move across the viewable screen
 	void setupWord(std::string word);
 	// setup function for animation
-	void setupAnimation(std::string word, int font_size, SDL_Rect position);
+	void setupAnimation(std::string word, int font_size, SDL_Color init_clr, SDL_Rect position);
 
 	// update functions for different components
 	void updateScoreText(std::string text);
 	void updateScore(int score);
 	void updateScoreColor(SDL_Color color);
 	void updateScorePosition(int x, int y);
+	void updateTimer(int time);
 	void updateTimerText(std::string text);
 	void updateTimerColor(SDL_Color color);
 	void updateTimerPosition(int x, int y);
@@ -88,6 +90,7 @@ public:
 	void updateAnimations(float dt);
 
 	// cleanup functions for different components
+	void cleanupTitleScreen();
 	void cleanupScreenHorizontalDivider();
 	void cleanupUpperScreenBackground();
 	void cleanupLowerScreenBackground();
@@ -104,6 +107,7 @@ public:
 	void cleanupAlphabetStates();
 
 	// render functions for different components (will be used in the game loop)
+	void renderTitleScreen();
 	void renderScreenHorizontalDivider();
 	void renderUpperScreenLeftmostVerticalDivider();
 	void renderUpperScreenBackground();
@@ -179,6 +183,17 @@ private:
 	std::vector<Word*> words;
 	// a vector to store the animations
 	std::vector<Animation*> animations;
+
+	// properties for the title screen
+	SDL_Texture* title_screen_title_text_texture;
+	SDL_Rect title_screen_title_text_rect;
+	SDL_Color title_screen_title_text_color;
+	std::string title_screen_title_text;
+	SDL_Texture* title_screen_subtitle_text_texture;
+	SDL_Rect title_screen_subtitle_text_rect;
+	SDL_Color title_screen_subtitle_text_color;
+	std::string title_screen_subtitle_text;
+	SDL_Texture* title_screen_background_image_texture;
 };
 
 #endif // RENDER_H

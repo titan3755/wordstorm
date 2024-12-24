@@ -20,7 +20,7 @@
 // along with smaller and smaller font sizes, the word will also have a smaller and smaller opacity
 class Animation {
 public:
-	Animation(SDL_Renderer* renderer, TTF_Font* font, std::string word, int font_size, SDL_Rect position);
+	Animation(SDL_Renderer* renderer, TTF_Font* font, SDL_Color init_clr, std::string word, int font_size, SDL_Rect position);
 	~Animation();
 
 	// setup will be done in the constructor
@@ -32,6 +32,7 @@ public:
 	// cleanup functions for the animation
 	void cleanupAnimation();
 	// getter functions for the animation
+	SDL_Color* getInitColor();
 	std::string getWord();
 	SDL_Rect* getWordPosition();
 	int getWordFontSize();
@@ -41,6 +42,7 @@ private:
 	// the texture will be generated as needed and the position will be the same as the initial position
 	// the font size will be smaller and smaller
 	// the opacity will be smaller and smaller
+	SDL_Color init_color;
 	std::string word;
 	SDL_Texture* texture;
 	SDL_Rect position;

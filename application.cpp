@@ -3,6 +3,12 @@
 const int TARGET_FRAME_RATE = 144;
 const int FRAME_TIME = 1000 / TARGET_FRAME_RATE;
 
+enum class State {
+	START,
+	PLAY,
+	END
+};
+
 Application::Application(int scrn_width, int scrn_height, std::string base_title) {
 	this->scrn_width = scrn_width;
 	this->scrn_height = scrn_height;
@@ -33,7 +39,7 @@ void Application::init() {
 		std::cout << "TTF_Init Success!" << std::endl;
 	}
 
-	if (IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG) {
+	if (IMG_Init(IMG_INIT_JPG) != IMG_INIT_JPG) {
 		std::cerr << "IMG_Init Error: " << IMG_GetError() << std::endl;
 		return;
 	}
@@ -63,7 +69,12 @@ void Application::init() {
 }
 
 void Application::run() {
+	// setup the state
+	State state = State::START;
+	// setup the render
 	Render render(window, renderer, scrn_width, scrn_height);
+	// setup the components
+	render.setupTitleScreen(TTF_OpenFont("assets/KOMIKAX.ttf", 48));
 	render.setupScreenHorizontalDivider();
 	render.setupUpperScreenLeftmostVerticalDivider();
 	render.setupUpperScreenBackground();
@@ -95,102 +106,147 @@ void Application::run() {
 	"FABLE", "GROTTO", "HORIZON", "ISLAND", "JIGSAW", "KEYSTONE", "LABYRINTH", "MIST", "NECTAR", "ORACLE",
 	"PARADOX", "QUAGMIRE", "RAVEN", "SILHOUETTE", "THRONE", "UTOPIA", "VALLEY", "WALTZ", "XENON", "ZENITH"
 	};
+	int timer_play = 60; // 60 seconds (on every word typed, timer will increase by 5 seconds) (on every word missed, timer will decrease by 2 seconds)
+	render.updateTimer(timer_play);
+	Uint32 startTimez = SDL_GetTicks(); // Start time
+
+	const Uint32 intervalz = 1000; // 1 second
+	Uint32 nextTriggerTimez = startTimez + intervalz;
 	while (running) {
 		Uint32 frameStart = SDL_GetTicks();
+		Uint32 currentTime = SDL_GetTicks();
 		while (SDL_PollEvent(&event)) {
 			if (event.type == SDL_QUIT) {
 				running = false;
 			}
 			if (event.type == SDL_KEYDOWN) {
-				char key = static_cast<char>(event.key.keysym.sym);
-				if (key >= 'a' && key <= 'z') { // Ensure it's a lowercase letter
-					// convert the key to uppercase
-					key = toupper(key);
-					keyStates[key] = true;
+				if (state == State::START) {
+					state = State::PLAY;
 				}
-				key_pressed_str += key;
+				if (state == State::PLAY) {
+					char key = static_cast<char>(event.key.keysym.sym);
+					if (key >= 'a' && key <= 'z') { // Ensure it's a lowercase letter
+						// convert the key to uppercase
+						key = toupper(key);
+						keyStates[key] = true;
+					}
+					key_pressed_str += key;
+				}
+				if (state == State::END) {
+					// ...
+				}
 			}
 			if (event.type == SDL_KEYUP) {
-				char key = static_cast<char>(event.key.keysym.sym);
-				if (key >= 'a' && key <= 'z') { // Ensure it's a lowercase letter
-					// convert the key to uppercase
-					key = toupper(key);
-					keyStates[key] = false;
+				if (state == State::START) {
+					// ...
+				}
+				if (state == State::PLAY) {
+					char key = static_cast<char>(event.key.keysym.sym);
+					if (key >= 'a' && key <= 'z') { // Ensure it's a lowercase letter
+						// convert the key to uppercase
+						key = toupper(key);
+						keyStates[key] = false;
+					}
+				}
+				if (state == State::END) {
+					// ...
 				}
 			}
 		}
 
-		// spawn a word every 2 seconds
-		static float timer = 0.0f;
-		timer += 0.013333f; // 75 fps (1/75 = 0.01333...f)
-		if (timer >= 2.0f) {
-			timer = 0.0f;
-			// select random word from the words_rand vector
-			std::string word_sel = words_rand[rand() % words_rand.size()];
-			render.setupWord(word_sel);
+		if (currentTime >= nextTriggerTimez) {
+			timer_play -= 1;
+			nextTriggerTimez += intervalz;
 		}
-
-		// detect if one of the words in the word vector is a substring of the key_pressed_str
-		// if multiple words are substrings of the key_pressed_str, the word which is the first substring will be removed
-		// if one substring corresponds to multiple words, the first word which is a substring will be removed
-		std::vector<Word*> words = render.getWords();
-		// check if any of the words have reached the left side of the screen
-		for (int i = 0; i < words.size(); i++) {
-			if (words[i]->getWordPosition()->x <= 0) {
-				// remove the word
-				words.erase(words.begin() + i);
-				// update the words
-				render.setWords(words);
-				// update the score
-				score -= 5;
-				render.updateScore(score);
-				break;
-			}
-		}
-		// set the words
-		for (int i = 0; i < words.size(); i++) {
-			std::string word = words[i]->getWord();
-			if (key_pressed_str.find(word) != std::string::npos) {
-				render.setupAnimation(word, 24, *words[i]->getWordPosition());
-				// remove the word
-				words.erase(words.begin() + i);
-				// update the words
-				render.setWords(words);
-				key_pressed_str.erase(key_pressed_str.find(word), word.length());
-				// update the score
-				score += 10;
-				render.updateScore(score);
-				break;
-			}
-		}
-
-		// update the components
-		render.updateAlphabetStates(keyStates);
-		render.updateWords(0.013333f); // 75 fps (1/75 = 0.01333...f)
-		render.updateAnimations(0.000333f); // 75 fps (1/75 = 0.01333...f)
-
-		// render the components
 
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 		SDL_RenderClear(renderer);
 
-		// render the components
-		render.renderLowerScreenBackground();
-		render.renderScreenHorizontalDivider();
-		render.renderUpperScreenBackground();
-		render.renderUpperScreenLeftmostVerticalDivider();
-		render.renderScoreText();
-		render.renderTimerText();
-		render.renderAlphabetLetters();
-		render.renderWords();
-		render.renderAnimations();
-
-		SDL_RenderPresent(renderer);
-
-		Uint32 frameTime = SDL_GetTicks() - frameStart;
-		if (frameTime < FRAME_TIME) {
-			SDL_Delay(FRAME_TIME - frameTime);
+		if (state == State::START) {
+			render.renderTitleScreen();
 		}
+		if (state == State::PLAY) {
+			// spawn a word every 2 seconds
+			static float timer = 0.0f;
+			timer += 0.013333f; // 75 fps (1/75 = 0.01333...f)
+			if (timer >= 2.0f) {
+				timer = 0.0f;
+				// select random word from the words_rand vector
+				std::string word_sel = words_rand[rand() % words_rand.size()];
+				render.setupWord(word_sel);
+			}
+
+			// update the timer every second
+			// accurately calculate the time passes independent of the frame rate
+			
+
+			// detect if one of the words in the word vector is a substring of the key_pressed_str
+			// if multiple words are substrings of the key_pressed_str, the word which is the first substring will be removed
+			// if one substring corresponds to multiple words, the first word which is a substring will be removed
+			std::vector<Word*> words = render.getWords();
+			// check if any of the words have reached the left side of the screen
+			for (int i = 0; i < words.size(); i++) {
+				if (words[i]->getWordPosition()->x <= 0) {
+					// remove 2 seconds from the timer
+					timer_play -= 2;
+					// end animation (red)
+					render.setupAnimation(words[i]->getWord(), 24, { 255, 0, 0 }, *words[i]->getWordPosition());
+					// remove the word
+					words.erase(words.begin() + i);
+					// update the words
+					render.setWords(words);
+					// update the score
+					score -= 5;
+					render.updateScore(score);
+					break;
+				}
+			}
+			// set the words
+			for (int i = 0; i < words.size(); i++) {
+				std::string word = words[i]->getWord();
+				if (key_pressed_str.find(word) != std::string::npos) {
+					// add 5 seconds to the timer
+					timer_play += 5;
+					// end animation (green)
+					render.setupAnimation(word, 24, { 0, 255, 0 }, *words[i]->getWordPosition());
+					// remove the word
+					words.erase(words.begin() + i);
+					// update the words
+					render.setWords(words);
+					key_pressed_str.erase(key_pressed_str.find(word), word.length());
+					// update the score
+					score += 10;
+					render.updateScore(score);
+					break;
+				}
+			}
+
+			// update the components
+			render.updateAlphabetStates(keyStates);
+			render.updateWords(0.013333f); // 75 fps (1/75 = 0.01333...f)
+			render.updateAnimations(0.000333f); // 75 fps (1/75 = 0.01333...f)
+			render.updateTimer(timer_play);
+
+			// render the components
+			render.renderLowerScreenBackground();
+			render.renderScreenHorizontalDivider();
+			render.renderUpperScreenBackground();
+			render.renderUpperScreenLeftmostVerticalDivider();
+			render.renderScoreText();
+			render.renderTimerText();
+			render.renderAlphabetLetters();
+			render.renderWords();
+			render.renderAnimations();
+
+			Uint32 frameTime = SDL_GetTicks() - frameStart;
+			if (frameTime < FRAME_TIME) {
+				SDL_Delay(FRAME_TIME - frameTime);
+			}
+		}
+		if (state == State::END) {
+			// ...
+		}
+		SDL_RenderPresent(renderer);
 	}
 }
 
@@ -209,3 +265,4 @@ void Application::cleanup() {
 	TTF_Quit();
 	SDL_Quit();
 }
+

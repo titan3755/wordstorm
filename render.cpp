@@ -43,10 +43,32 @@ Render::Render(SDL_Window* window, SDL_Renderer* renderer, int scrn_width, int s
 	this->pressed_alphabet_color = { 0, 255, 0, 255 };
 	this->words = std::vector<Word*>();
 	this->animations = std::vector<Animation*>();
+	this->title_screen_background_image_texture = nullptr;
+	this->title_screen_title_text_texture = nullptr;
+	this->title_screen_subtitle_text_texture = nullptr;
+	this->title_screen_title_text = "";
+	this->title_screen_subtitle_text = "";
+	this->title_screen_title_text_rect.x = 0;
+	this->title_screen_title_text_rect.y = 0;
+	this->title_screen_title_text_rect.w = 0;
+	this->title_screen_title_text_rect.h = 0;
+	this->title_screen_title_text_color.r = 255;
+	this->title_screen_title_text_color.g = 255;
+	this->title_screen_title_text_color.b = 255;
+	this->title_screen_subtitle_text_rect.x = 0;
+	this->title_screen_subtitle_text_rect.y = 0;
+	this->title_screen_subtitle_text_rect.w = 0;
+	this->title_screen_subtitle_text_rect.h = 0;
+	this->title_screen_subtitle_text_color.r = 255;
+	this->title_screen_subtitle_text_color.g = 255;
+	this->title_screen_subtitle_text_color.b = 255;
 }
 
 // destructor
 Render::~Render() {
+	// cleanup the components
+	// cleanup the title screen
+	
 	// cleanup the horizontal divider
 	cleanupScreenHorizontalDivider();
 	// cleanup the upper screen background
@@ -69,6 +91,58 @@ Render::~Render() {
 }
 
 // setup functions for different components
+
+// setup the title screen
+void Render::setupTitleScreen(TTF_Font* font) {
+	// use bg.jpg as the background image
+	SDL_Surface* surface = IMG_Load("assets/bg.jpg");
+	if (surface == nullptr) {
+		std::cerr << "IMG_Load Error: " << IMG_GetError() << std::endl;
+		return;
+	}
+	title_screen_background_image_texture = SDL_CreateTextureFromSurface(renderer, surface);
+	if (title_screen_background_image_texture == nullptr) {
+		std::cerr << "SDL_CreateTextureFromSurface Error: " << SDL_GetError() << std::endl;
+		return;
+	}
+	SDL_FreeSurface(surface);
+	// set the title screen title text as wordstorm and subtitle text as press any key to start
+	// store the text as texture
+	title_screen_title_text = "WordStorm";
+	title_screen_subtitle_text = "Press any key to start";
+	SDL_Surface* text_surface = TTF_RenderText_Solid(font, title_screen_title_text.c_str(), title_screen_title_text_color);
+	if (text_surface == nullptr) {
+		std::cerr << "TTF_RenderText_Solid Error: " << TTF_GetError() << std::endl;
+		return;
+	}
+	title_screen_title_text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
+	if (title_screen_title_text_texture == nullptr) {
+		std::cerr << "SDL_CreateTextureFromSurface Error: " << SDL_GetError() << std::endl;
+		return;
+	}
+	title_screen_title_text_rect.w = text_surface->w;
+	title_screen_title_text_rect.h = text_surface->h;
+	SDL_FreeSurface(text_surface);
+	text_surface = TTF_RenderText_Solid(font, title_screen_subtitle_text.c_str(), title_screen_subtitle_text_color);
+	if (text_surface == nullptr) {
+		std::cerr << "TTF_RenderText_Solid Error: " << TTF_GetError() << std::endl;
+		return;
+	}
+	title_screen_subtitle_text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
+	if (title_screen_subtitle_text_texture == nullptr) {
+		std::cerr << "SDL_CreateTextureFromSurface Error: " << SDL_GetError() << std::endl;
+		return;
+	}
+	title_screen_subtitle_text_rect.w = text_surface->w;
+	title_screen_subtitle_text_rect.h = text_surface->h;
+	SDL_FreeSurface(text_surface);
+	// change the x and y coordinates of the rects to slightly above the center of the window
+	// and slightly below the center of the window
+	title_screen_title_text_rect.x = (scrn_width - title_screen_title_text_rect.w) / 2;
+	title_screen_title_text_rect.y = (scrn_height - title_screen_title_text_rect.h) / 2 - 50;
+	title_screen_subtitle_text_rect.x = (scrn_width - title_screen_subtitle_text_rect.w) / 2;
+	title_screen_subtitle_text_rect.y = (scrn_height - title_screen_subtitle_text_rect.h) / 2 + 50;
+}
 
 // the horizontal divider between the upper and lower screens (upper screen will have greater area than the lower screen)
 void Render::setupScreenHorizontalDivider() {
@@ -305,8 +379,8 @@ void Render::setupWord(std::string word) {
 }
 
 // setup the animation
-void Render::setupAnimation(std::string word, int font_size, SDL_Rect position) {
-	Animation* a = new Animation(renderer, TTF_OpenFont("assets/KOMIKAX.ttf", font_size), word, font_size, position);
+void Render::setupAnimation(std::string word, int font_size, SDL_Color init_clr, SDL_Rect position) {
+	Animation* a = new Animation(renderer, TTF_OpenFont("assets/KOMIKAX.ttf", font_size), init_clr, word, font_size, position);
 	a->setupAnimation();
 	animations.push_back(a);
 }
@@ -375,6 +449,12 @@ void Render::updateScoreColor(SDL_Color color) {
 void Render::updateScorePosition(int x, int y) {
 	score_text_rect.x = x;
 	score_text_rect.y = y;
+}
+
+// update the timer
+void Render::updateTimer(int timer) {
+	std::string text = "Timer: " + std::to_string(timer);
+	updateTimerText(text);
 }
 
 // update the timer text
@@ -546,6 +626,12 @@ void Render::cleanupAlphabetStates() {
 	alphabet_states.clear();
 }
 
+void Render::cleanupTitleScreen() {
+	SDL_DestroyTexture(title_screen_background_image_texture);
+	SDL_DestroyTexture(title_screen_title_text_texture);
+	SDL_DestroyTexture(title_screen_subtitle_text_texture);
+}
+
 // render functions for different components (will be used in the game loop)
 
 // render the horizontal divider
@@ -615,6 +701,16 @@ void Render::renderAnimations() {
 	for (int i = 0; i < animations.size(); i++) {
 		animations[i]->renderAnimation();
 	}
+}
+
+// render the title screen
+void Render::renderTitleScreen() {
+	// render the background image
+	SDL_RenderCopy(renderer, title_screen_background_image_texture, nullptr, nullptr);
+	// render the title text
+	SDL_RenderCopy(renderer, title_screen_title_text_texture, nullptr, &title_screen_title_text_rect);
+	// render the subtitle text
+	SDL_RenderCopy(renderer, title_screen_subtitle_text_texture, nullptr, &title_screen_subtitle_text_rect);
 }
 
 // alphabet properties getters

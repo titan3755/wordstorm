@@ -1,8 +1,9 @@
 #include <animation.h>
 
-Animation::Animation(SDL_Renderer* renderer, TTF_Font* font, std::string word, int font_size, SDL_Rect position) {
+Animation::Animation(SDL_Renderer* renderer, TTF_Font* font, SDL_Color init_clr, std::string word, int font_size, SDL_Rect position) {
 	this->renderer = renderer;
 	this->font = font;
+	this->init_color = init_clr;
 	this->word = word;
 	this->font_size = font_size;
 	this->position = position;
@@ -17,7 +18,7 @@ Animation::~Animation() {
 void Animation::setupAnimation() {
 	// create a surface from the word
 	// create color
-	SDL_Color color = { 0, 255, 0, opacity };
+	SDL_Color color = { init_color.r, init_color.g, init_color.b, opacity };
 	SDL_Surface* surface = TTF_RenderText_Blended(font, word.c_str(), color);
 	if (surface == nullptr) {
 		std::cerr << "TTF_RenderText_Blended Error: " << TTF_GetError() << std::endl;
@@ -46,7 +47,7 @@ void Animation::updateAnimation(float dt) {
 void Animation::renderAnimation() {
 	// render the word
 	SDL_SetTextureAlphaMod(texture, opacity);
-	SDL_SetTextureColorMod(texture, 0, 255, 0);
+	SDL_SetTextureColorMod(texture, init_color.r, init_color.g, init_color.b);
 	// set scale for the word
 	position.w = word.length() * font_size;
 	position.h = font_size;
@@ -57,6 +58,10 @@ void Animation::renderAnimation() {
 void Animation::cleanupAnimation() {
 	// cleanup the texture
 	SDL_DestroyTexture(texture);
+}
+
+SDL_Color* Animation::getInitColor() {
+	return &init_color;
 }
 
 std::string Animation::getWord() {
