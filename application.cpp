@@ -106,7 +106,7 @@ void Application::run() {
 	// setup the render
 	Render render(window, renderer, scrn_width, scrn_height);
 	// setup the components
-	render.setupTitleScreen(TTF_OpenFont("assets/KOMIKAX.ttf", 48));
+	render.setupTitleScreen(TTF_OpenFont("assets/LEMONMILK-Regular.otf", 50));
 	render.setupScreenHorizontalDivider();
 	render.setupUpperScreenLeftmostVerticalDivider();
 	render.setupUpperScreenBackground();
@@ -155,6 +155,7 @@ void Application::run() {
 			if (event.type == SDL_KEYDOWN) {
 				if (state == State::START) {
 					state = State::PLAY;
+					timer_play = 60;
 				}
 				if (state == State::PLAY) {
 					char key = static_cast<char>(event.key.keysym.sym);
