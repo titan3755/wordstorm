@@ -14,6 +14,17 @@ Render::Render(SDL_Window* window, SDL_Renderer* renderer, int scrn_width, int s
 	this->horizontal_divider_color = nullptr;
 	this->upper_screen_background_color = nullptr;
 	this->lower_screen_background_color = nullptr;
+	this->high_score_text_font = nullptr;
+	this->high_score_text_texture = nullptr;
+	this->high_score_text = "";
+	this->high_score_text_rect.x = 0;
+	this->high_score_text_rect.y = 0;
+	this->high_score_text_rect.w = 0;
+	this->high_score_text_rect.h = 0;
+	this->high_score_text_color.r = 255;
+	this->high_score_text_color.g = 255;
+	this->high_score_text_color.b = 255;
+	this->high_score_text_color.a = 255;
 	this->score_text_font = nullptr;
 	this->score_text_texture = nullptr;
 	this->score_text = "";
@@ -40,7 +51,7 @@ Render::Render(SDL_Window* window, SDL_Renderer* renderer, int scrn_width, int s
 	this->alphabet_textures = std::map<char, std::vector<SDL_Texture*>>();
 	this->alphabet_states = std::map<char, bool>(); // true if the alphabet is pressed, false otherwise
 	this->normal_alphabet_color = { 255, 255, 255, 255 };
-	this->pressed_alphabet_color = { 0, 255, 0, 255 };
+	this->pressed_alphabet_color = { 0, 0, 255, 255 };
 	this->words = std::vector<Word*>();
 	this->animations = std::vector<Animation*>();
 	this->title_screen_background_image_texture = nullptr;
@@ -62,19 +73,60 @@ Render::Render(SDL_Window* window, SDL_Renderer* renderer, int scrn_width, int s
 	this->title_screen_subtitle_text_color.r = 255;
 	this->title_screen_subtitle_text_color.g = 255;
 	this->title_screen_subtitle_text_color.b = 255;
+	this->game_over_screen_background_color = { 255, 0, 0 };
+	this->game_over_screen_title_text = "";
+	this->game_over_screen_subtitle_text = "";
+	this->game_over_screen_title_text_rect.x = 0;
+	this->game_over_screen_title_text_rect.y = 0;
+	this->game_over_screen_title_text_rect.w = 0;
+	this->game_over_screen_title_text_rect.h = 0;
+	this->game_over_screen_title_text_color.r = 255;
+	this->game_over_screen_title_text_color.g = 255;
+	this->game_over_screen_title_text_color.b = 255;
+	this->game_over_screen_subtitle_text_rect.x = 0;
+	this->game_over_screen_subtitle_text_rect.y = 0;
+	this->game_over_screen_subtitle_text_rect.w = 0;
+	this->game_over_screen_subtitle_text_rect.h = 0;
+	this->game_over_screen_subtitle_text_color.r = 255;
+	this->game_over_screen_subtitle_text_color.g = 255;
+	this->game_over_screen_subtitle_text_color.b = 255;
+	this->game_over_screen_title_text_texture = nullptr;
+	this->game_over_screen_subtitle_text_texture = nullptr;
+	this->game_over_screen_score_text = "";
+	this->game_over_screen_score_text_rect.x = 0;
+	this->game_over_screen_score_text_rect.y = 0;
+	this->game_over_screen_score_text_rect.w = 0;
+	this->game_over_screen_score_text_rect.h = 0;
+	this->game_over_screen_score_text_color.r = 255;
+	this->game_over_screen_score_text_color.g = 255;
+	this->game_over_screen_score_text_color.b = 255;
+	this->game_over_screen_score_text_texture = nullptr;
+	this->game_over_screen_high_score_text = "";
+	this->game_over_screen_high_score_text_rect.x = 0;
+	this->game_over_screen_high_score_text_rect.y = 0;
+	this->game_over_screen_high_score_text_rect.w = 0;
+	this->game_over_screen_high_score_text_rect.h = 0;
+	this->game_over_screen_high_score_text_color.r = 255;
+	this->game_over_screen_high_score_text_color.g = 255;
+	this->game_over_screen_high_score_text_color.b = 255;
+	this->game_over_screen_high_score_text_texture = nullptr;
 }
 
 // destructor
 Render::~Render() {
 	// cleanup the components
 	// cleanup the title screen
-	
+	cleanupTitleScreen();
+	// cleanup the gameover screen
+	cleanupGameOverScreen();
 	// cleanup the horizontal divider
 	cleanupScreenHorizontalDivider();
 	// cleanup the upper screen background
 	cleanupUpperScreenBackground();
 	// cleanup the lower screen background
 	cleanupLowerScreenBackground();
+	// clean the high score text
+	cleanupHighScoreText();
 	// cleanup the score text
 	cleanupScoreText();
 	// cleanup the timer text
@@ -144,6 +196,81 @@ void Render::setupTitleScreen(TTF_Font* font) {
 	title_screen_subtitle_text_rect.y = (scrn_height - title_screen_subtitle_text_rect.h) / 2 + 50;
 }
 
+void Render::setupGameOverScreen(TTF_Font* font, int score, int high_score) {
+	// gameover title text
+	game_over_screen_title_text = "Game Over";
+	SDL_Surface* text_surface = TTF_RenderText_Solid(font, game_over_screen_title_text.c_str(), game_over_screen_title_text_color);
+	if (text_surface == nullptr) {
+		std::cerr << "TTF_RenderText_Solid Error: " << TTF_GetError() << std::endl;
+		return;
+	}
+	game_over_screen_title_text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
+	if (game_over_screen_title_text_texture == nullptr) {
+		std::cerr << "SDL_CreateTextureFromSurface Error: " << SDL_GetError() << std::endl;
+		return;
+	}
+	
+	game_over_screen_title_text_rect.w = text_surface->w;
+	game_over_screen_title_text_rect.h = text_surface->h;
+	SDL_FreeSurface(text_surface);
+	game_over_screen_title_text_rect.x = (scrn_width - game_over_screen_title_text_rect.w) / 2;
+	game_over_screen_title_text_rect.y = (scrn_height - game_over_screen_title_text_rect.h) / 2 - 50;
+
+	// gameover subtitle text
+	game_over_screen_subtitle_text = "Press any key to restart";
+	text_surface = TTF_RenderText_Solid(font, game_over_screen_subtitle_text.c_str(), game_over_screen_subtitle_text_color);
+	if (text_surface == nullptr) {
+		std::cerr << "TTF_RenderText_Solid Error: " << TTF_GetError() << std::endl;
+		return;
+	}
+	game_over_screen_subtitle_text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
+	if (game_over_screen_subtitle_text_texture == nullptr) {
+		std::cerr << "SDL_CreateTextureFromSurface Error: " << SDL_GetError() << std::endl;
+		return;
+	}
+	game_over_screen_subtitle_text_rect.w = text_surface->w;
+	game_over_screen_subtitle_text_rect.h = text_surface->h;
+	SDL_FreeSurface(text_surface);
+	game_over_screen_subtitle_text_rect.x = (scrn_width - game_over_screen_subtitle_text_rect.w) / 2;
+	game_over_screen_subtitle_text_rect.y = (scrn_height - game_over_screen_subtitle_text_rect.h) / 2 + 50;
+
+	// gameover score text
+	game_over_screen_score_text = "Score: " + std::to_string(score);
+	text_surface = TTF_RenderText_Solid(font, game_over_screen_score_text.c_str(), game_over_screen_score_text_color);
+	if (text_surface == nullptr) {
+		std::cerr << "TTF_RenderText_Solid Error: " << TTF_GetError() << std::endl;
+		return;
+	}
+	game_over_screen_score_text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
+	if (game_over_screen_score_text_texture == nullptr) {
+		std::cerr << "SDL_CreateTextureFromSurface Error: " << SDL_GetError() << std::endl;
+		return;
+	}
+	game_over_screen_score_text_rect.w = text_surface->w;
+	game_over_screen_score_text_rect.h = text_surface->h;
+	SDL_FreeSurface(text_surface);
+	game_over_screen_score_text_rect.x = (scrn_width - game_over_screen_score_text_rect.w) / 2;
+	game_over_screen_score_text_rect.y = (scrn_height - game_over_screen_score_text_rect.h) / 2 + 100;
+
+	// gameover high score text
+	game_over_screen_high_score_text = "High Score: " + std::to_string(high_score);
+	text_surface = TTF_RenderText_Solid(font, game_over_screen_high_score_text.c_str(), game_over_screen_high_score_text_color);
+	if (text_surface == nullptr) {
+		std::cerr << "TTF_RenderText_Solid Error: " << TTF_GetError() << std::endl;
+		return;
+	}
+	game_over_screen_high_score_text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
+	if (game_over_screen_high_score_text_texture == nullptr) {
+		std::cerr << "SDL_CreateTextureFromSurface Error: " << SDL_GetError() << std::endl;
+		return;
+	}
+	game_over_screen_high_score_text_rect.w = text_surface->w;
+	game_over_screen_high_score_text_rect.h = text_surface->h;
+	SDL_FreeSurface(text_surface);
+	game_over_screen_high_score_text_rect.x = (scrn_width - game_over_screen_high_score_text_rect.w) / 2;
+	game_over_screen_high_score_text_rect.y = (scrn_height - game_over_screen_high_score_text_rect.h) / 2 + 150;
+}
+
 // the horizontal divider between the upper and lower screens (upper screen will have greater area than the lower screen)
 void Render::setupScreenHorizontalDivider() {
 	horizontal_divider = new SDL_Rect();
@@ -199,6 +326,44 @@ void Render::setupLowerScreenBackground() {
 	lower_screen_background_color->g = 0;
 	lower_screen_background_color->b = 0;
 	lower_screen_background_color->a = 255;
+}
+
+// the high score text
+void Render::setupHighScoreText(TTF_Font* font, std::string text, int x, int y) {
+	high_score_text_font = font;
+	high_score_text = text;
+	high_score_text_color.r = 0;
+	high_score_text_color.g = 0;
+	high_score_text_color.b = 0;
+	high_score_text_color.a = 255;
+	high_score_text_texture = nullptr;
+	high_score_text_rect.x = x;
+	high_score_text_rect.y = y;
+	high_score_text_rect.w = 0;
+	high_score_text_rect.h = 0;
+
+	// render the text to a texture
+	SDL_Surface* text_surface = TTF_RenderText_Solid(high_score_text_font, high_score_text.c_str(), high_score_text_color);
+	if (text_surface == nullptr) {
+		std::cerr << "TTF_RenderText_Solid Error: " << TTF_GetError() << std::endl;
+		return;
+	}
+	else {
+		std::cout << "TTF_RenderText_Solid Success!" << std::endl;
+	}
+	high_score_text_rect.w = text_surface->w;
+	high_score_text_rect.h = text_surface->h;
+	high_score_text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
+	if (high_score_text_texture == nullptr) {
+		std::cerr << "SDL_CreateTextureFromSurface Error: " << SDL_GetError() << std::endl;
+		return;
+	}
+	else {
+		std::cout << "SDL_CreateTextureFromSurface Success!" << std::endl;
+	}
+
+	// cleanup the surface
+	SDL_FreeSurface(text_surface);
 }
 
 // the score text
@@ -386,6 +551,71 @@ void Render::setupAnimation(std::string word, int font_size, SDL_Color init_clr,
 }
 
 // update functions for different components
+
+// update the high score text
+void Render::updateHighScoreText(std::string text) {
+	high_score_text = text;
+
+	// render the text to a texture
+	SDL_Surface* text_surface = TTF_RenderText_Solid(high_score_text_font, high_score_text.c_str(), high_score_text_color);
+	if (text_surface == nullptr) {
+		std::cerr << "TTF_RenderText_Solid Error: " << TTF_GetError() << std::endl;
+		return;
+	}
+	else {
+		std::cout << "TTF_RenderText_Solid Success!" << std::endl;
+	}
+	high_score_text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
+	if (high_score_text_texture == nullptr) {
+		std::cerr << "SDL_CreateTextureFromSurface Error: " << SDL_GetError() << std::endl;
+		return;
+	}
+	else {
+		std::cout << "SDL_CreateTextureFromSurface Success!" << std::endl;
+	}
+
+	// cleanup the surface
+	SDL_FreeSurface(text_surface);
+
+}
+
+// update the value of high score
+void Render::updateHighScore(int high_score) {
+	std::string text = "High Score: " + std::to_string(high_score);
+	updateHighScoreText(text);
+}
+
+/// update the position of the high score text
+void Render::updateHighScorePosition(int x, int y) {
+	high_score_text_rect.x = x;
+	high_score_text_rect.y = y;
+}
+
+// update the color of the high score text
+void Render::updateHighScoreColor(SDL_Color color) {
+	high_score_text_color = color;
+
+	// render the text to a texture
+	SDL_Surface* text_surface = TTF_RenderText_Solid(high_score_text_font, high_score_text.c_str(), high_score_text_color);
+	if (text_surface == nullptr) {
+		std::cerr << "TTF_RenderText_Solid Error: " << TTF_GetError() << std::endl;
+		return;
+	}
+	else {
+		std::cout << "TTF_RenderText_Solid Success!" << std::endl;
+	}
+	high_score_text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
+	if (high_score_text_texture == nullptr) {
+		std::cerr << "SDL_CreateTextureFromSurface Error: " << SDL_GetError() << std::endl;
+		return;
+	}
+	else {
+		std::cout << "SDL_CreateTextureFromSurface Success!" << std::endl;
+	}
+
+	// cleanup the surface
+	SDL_FreeSurface(text_surface);
+}
 
 // update the score text
 void Render::updateScoreText(std::string text) {
@@ -600,6 +830,10 @@ void Render::cleanupLowerScreenBackground() {
 	delete lower_screen_background_color;
 }
 
+void Render::cleanupHighScoreText() {
+	SDL_DestroyTexture(high_score_text_texture);
+}
+
 void Render::cleanupScoreText() {
 	SDL_DestroyTexture(score_text_texture);
 }
@@ -632,6 +866,19 @@ void Render::cleanupTitleScreen() {
 	SDL_DestroyTexture(title_screen_subtitle_text_texture);
 }
 
+void Render::cleanupGameOverScreen() {
+	SDL_DestroyTexture(game_over_screen_title_text_texture);
+	SDL_DestroyTexture(game_over_screen_subtitle_text_texture);
+	SDL_DestroyTexture(game_over_screen_score_text_texture);
+	SDL_DestroyTexture(game_over_screen_high_score_text_texture);
+}
+
+void Render::cleanupAnimations() {
+	for (int i = 0; i < animations.size(); i++) {
+		delete animations[i];
+	}
+}
+
 // render functions for different components (will be used in the game loop)
 
 // render the horizontal divider
@@ -656,6 +903,11 @@ void Render::renderUpperScreenBackground() {
 void Render::renderLowerScreenBackground() {
 	SDL_SetRenderDrawColor(renderer, lower_screen_background_color->r, lower_screen_background_color->g, lower_screen_background_color->b, lower_screen_background_color->a);
 	SDL_RenderFillRect(renderer, lower_screen_background);
+}
+
+// render the high score text
+void Render::renderHighScoreText() {
+	SDL_RenderCopy(renderer, high_score_text_texture, nullptr, &high_score_text_rect);
 }
 
 // render the score text
@@ -713,6 +965,20 @@ void Render::renderTitleScreen() {
 	SDL_RenderCopy(renderer, title_screen_subtitle_text_texture, nullptr, &title_screen_subtitle_text_rect);
 }
 
+void Render::renderGameOverScreen() {
+	// render the background color
+	SDL_SetRenderDrawColor(renderer, game_over_screen_background_color.r, game_over_screen_background_color.g, game_over_screen_background_color.b, game_over_screen_background_color.a);
+	SDL_RenderClear(renderer);
+	// render the title text
+	SDL_RenderCopy(renderer, game_over_screen_title_text_texture, nullptr, &game_over_screen_title_text_rect);
+	// render the subtitle text
+	SDL_RenderCopy(renderer, game_over_screen_subtitle_text_texture, nullptr, &game_over_screen_subtitle_text_rect);
+	// render the score text
+	SDL_RenderCopy(renderer, game_over_screen_score_text_texture, nullptr, &game_over_screen_score_text_rect);
+	// render the high score text
+	SDL_RenderCopy(renderer, game_over_screen_high_score_text_texture, nullptr, &game_over_screen_high_score_text_rect);
+}
+
 // alphabet properties getters
 std::map<char, std::vector<SDL_Texture*>> Render::getAlphabetTextures() const {
 	return alphabet_textures;
@@ -748,4 +1014,9 @@ std::string Render::getScoreText() const {
 // set words
 void Render::setWords(std::vector<Word*> words) {
 	this->words = words;
+}
+
+// set animations
+void Render::setAnimations(std::vector<Animation*> animations) {
+	this->animations = animations;
 }

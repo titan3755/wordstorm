@@ -16,6 +16,7 @@ Application::Application(int scrn_width, int scrn_height, std::string base_title
 	this->window = nullptr;
 	this->renderer = nullptr;
 	this->running = false;
+	this->high_score = 0;
 }
 
 Application::~Application() {
@@ -65,6 +66,37 @@ void Application::init() {
 		std::cout << "SDL_CreateRenderer Success!" << std::endl;
 	}
 
+	// read the high score from the file
+	std::ifstream file("stats.txt");
+	if (file.is_open()) {
+		// check if the file is empty
+		if (file.peek() == std::ifstream::traits_type::eof()) {
+			high_score = 0;
+		}
+		else {
+			// check if the data obtained is a number
+			if (file >> high_score) {
+				std::cout << "High Score: " << high_score << std::endl;
+			}
+			else {
+				std::cerr << "Invalid data in file!" << std::endl;
+			}
+		}
+		file.close();
+	}
+	else {
+		std::cerr << "Unable to open file!" << std::endl;
+		// create the file
+		std::ofstream file("stats.txt");
+		if (file.is_open()) {
+			file << high_score;
+			file.close();
+		}
+		else {
+			std::cerr << "Unable to create file!" << std::endl;
+		}
+	}
+
 	running = true;
 }
 
@@ -79,8 +111,9 @@ void Application::run() {
 	render.setupUpperScreenLeftmostVerticalDivider();
 	render.setupUpperScreenBackground();
 	render.setupLowerScreenBackground();
-	render.setupScoreText(TTF_OpenFont("assets/KOMIKAX.ttf", 24), "Score: 0", 30, 10);
-	render.setupTimerText(TTF_OpenFont("assets/KOMIKAX.ttf", 24), "Time: 0", 200, 10);
+	render.setupHighScoreText(TTF_OpenFont("assets/KOMIKAX.ttf", 24), "High Score: " + std::to_string(high_score), 30, 10);
+	render.setupScoreText(TTF_OpenFont("assets/KOMIKAX.ttf", 24), "Score: 0", 280, 10);
+	render.setupTimerText(TTF_OpenFont("assets/KOMIKAX.ttf", 24), "Time: 0", 430, 10);
 	render.setupAlphabetTextures(TTF_OpenFont("assets/HeyComic.ttf", 24));
 	render.setupAlphabetPositions();
 	char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -133,7 +166,10 @@ void Application::run() {
 					key_pressed_str += key;
 				}
 				if (state == State::END) {
-					// ...
+					state = State::START;
+					// cleanup the gameover screen
+					timer_play = 60;
+					render.cleanupGameOverScreen();
 				}
 			}
 			if (event.type == SDL_KEYUP) {
@@ -178,7 +214,7 @@ void Application::run() {
 
 			// update the timer every second
 			// accurately calculate the time passes independent of the frame rate
-			
+
 
 			// detect if one of the words in the word vector is a substring of the key_pressed_str
 			// if multiple words are substrings of the key_pressed_str, the word which is the first substring will be removed
@@ -221,17 +257,76 @@ void Application::run() {
 				}
 			}
 
+			// check if score is greater than high score
+			if (score > high_score) {
+				high_score = score;
+				// update the high score file
+				std::ofstream file("stats.txt", std::ios::out);
+				file << high_score;
+				file.close();
+				// update the high score text
+				render.updateHighScore(high_score);
+			}
+
 			// update the components
 			render.updateAlphabetStates(keyStates);
 			render.updateWords(0.013333f); // 75 fps (1/75 = 0.01333...f)
 			render.updateAnimations(0.000333f); // 75 fps (1/75 = 0.01333...f)
-			render.updateTimer(timer_play);
+			// update the timer only when the timer_play variable has changed
+			static int timer_play_prev = timer_play;
+			if (timer_play != timer_play_prev) {
+				render.updateTimer(timer_play);
+				timer_play_prev = timer_play;
+			}
+
+			// check if the timer has reached 0
+			if (timer_play <= 0) {
+				state = State::END;
+
+				// setup the gameover screen
+				render.setupGameOverScreen(TTF_OpenFont("assets/KOMIKAX.ttf", 48), score, high_score);
+
+				// set the high score in the file
+				std::ofstream file("stats.txt", std::ios::out);
+				file << high_score;
+				file.close();
+
+				// clear the key pressed string
+				key_pressed_str.clear();
+
+				// clear the words
+				words.clear();
+				render.setWords(words);
+
+				// clear the animations
+				render.setAnimations(std::vector<Animation*>());
+
+				// reset the score
+				score = 0;
+				render.updateScore(score);
+
+				// reset the timer
+				timer_play = 60;
+				render.updateTimer(timer_play);
+
+				// reset other timer variable
+				timer_play_prev = timer_play;
+
+				// reset the key states
+				for (int i = 0; i < 26; i++) {
+					keyStates[alphabet[i]] = false;
+				}
+
+				// reset the alphabet states
+				render.setupAlphabetStates(alphabet, 26);
+			}
 
 			// render the components
 			render.renderLowerScreenBackground();
 			render.renderScreenHorizontalDivider();
 			render.renderUpperScreenBackground();
 			render.renderUpperScreenLeftmostVerticalDivider();
+			render.renderHighScoreText();
 			render.renderScoreText();
 			render.renderTimerText();
 			render.renderAlphabetLetters();
@@ -244,7 +339,8 @@ void Application::run() {
 			}
 		}
 		if (state == State::END) {
-			// ...
+			// render gameover screen
+			render.renderGameOverScreen();
 		}
 		SDL_RenderPresent(renderer);
 	}

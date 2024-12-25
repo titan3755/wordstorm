@@ -22,10 +22,12 @@ public:
 
 	// setup functions for different components
 	void setupTitleScreen(TTF_Font* font);
+	void setupGameOverScreen(TTF_Font* font, int score, int high_score);
 	void setupScreenHorizontalDivider();
 	void setupUpperScreenLeftmostVerticalDivider();
 	void setupUpperScreenBackground();
 	void setupLowerScreenBackground();
+	void setupHighScoreText(TTF_Font* font, std::string text, int x, int y);
 	void setupScoreText(TTF_Font* font, std::string text, int x, int y);
 	void setupTimerText(TTF_Font* font, std::string text, int x, int y);
 	// a setup function which creates the textures for every english alphabet letter and there will be two sets of
@@ -58,6 +60,10 @@ public:
 	void setupAnimation(std::string word, int font_size, SDL_Color init_clr, SDL_Rect position);
 
 	// update functions for different components
+	void updateHighScoreText(std::string text);
+	void updateHighScore(int high_score);
+	void updateHighScoreColor(SDL_Color color);
+	void updateHighScorePosition(int x, int y);
 	void updateScoreText(std::string text);
 	void updateScore(int score);
 	void updateScoreColor(SDL_Color color);
@@ -91,9 +97,11 @@ public:
 
 	// cleanup functions for different components
 	void cleanupTitleScreen();
+	void cleanupGameOverScreen();
 	void cleanupScreenHorizontalDivider();
 	void cleanupUpperScreenBackground();
 	void cleanupLowerScreenBackground();
+	void cleanupHighScoreText();
 	void cleanupScoreText();
 	void cleanupTimerText();
 	// a cleanup function which will cleanup the textures of the alphabet letters
@@ -105,13 +113,16 @@ public:
 	// a cleanup function which will cleanup the states of the alphabet letters
 	// the function will take the map of the states and cleanup
 	void cleanupAlphabetStates();
+	void cleanupAnimations();
 
 	// render functions for different components (will be used in the game loop)
 	void renderTitleScreen();
+	void renderGameOverScreen();
 	void renderScreenHorizontalDivider();
 	void renderUpperScreenLeftmostVerticalDivider();
 	void renderUpperScreenBackground();
 	void renderLowerScreenBackground();
+	void renderHighScoreText();
 	void renderScoreText();
 	void renderTimerText();
 	// a render function which will render the alphabet letters on the screen
@@ -127,6 +138,9 @@ public:
 	// setters
 	// set words
 	void setWords(std::vector<Word*> words);
+
+	// set animations
+	void setAnimations(std::vector<Animation*> animations);
 
 	// alphabet properties getters
 	std::map<char, std::vector<SDL_Texture*>> getAlphabetTextures() const;
@@ -155,6 +169,11 @@ private:
 	SDL_Color* upper_screen_leftmost_vertical_divider_color;
 	SDL_Color* upper_screen_background_color;
 	SDL_Color* lower_screen_background_color;
+	TTF_Font* high_score_text_font;
+	SDL_Texture* high_score_text_texture;
+	SDL_Rect high_score_text_rect;
+	SDL_Color high_score_text_color;
+	std::string high_score_text;
 	TTF_Font* score_text_font;
 	SDL_Texture* score_text_texture;
 	SDL_Rect score_text_rect;
@@ -194,6 +213,25 @@ private:
 	SDL_Color title_screen_subtitle_text_color;
 	std::string title_screen_subtitle_text;
 	SDL_Texture* title_screen_background_image_texture;
+
+	// properties for the game over screen
+	SDL_Texture* game_over_screen_title_text_texture;
+	SDL_Rect game_over_screen_title_text_rect;
+	SDL_Color game_over_screen_title_text_color;
+	std::string game_over_screen_title_text;
+	SDL_Texture* game_over_screen_subtitle_text_texture;
+	SDL_Rect game_over_screen_subtitle_text_rect;
+	SDL_Color game_over_screen_subtitle_text_color;
+	std::string game_over_screen_subtitle_text;
+	SDL_Texture* game_over_screen_score_text_texture;
+	SDL_Rect game_over_screen_score_text_rect;
+	SDL_Color game_over_screen_score_text_color;
+	std::string game_over_screen_score_text;
+	SDL_Texture* game_over_screen_high_score_text_texture;
+	SDL_Rect game_over_screen_high_score_text_rect;
+	SDL_Color game_over_screen_high_score_text_color;
+	std::string game_over_screen_high_score_text;
+	SDL_Color game_over_screen_background_color;
 };
 
 #endif // RENDER_H
