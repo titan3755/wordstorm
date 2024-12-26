@@ -2,7 +2,7 @@
 A quick-typing minigame made with SDL2 and C++
 
 # feature-additions (to-do)
--> UI improvements (minor) <br>
+-> UI improvements (minor) (done) <br>
 -> Implement random difficulty changes (i.e change word velocity randomly or word spawn rate randomly) (done) <br>
 -> Implement random bonuses (randomly huge words will spawn) (done) <br>
 -> Implement random fonts when spawning words (random colors already implemented) (done) <br>
