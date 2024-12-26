@@ -13,8 +13,9 @@ A quick-typing minigame made with SDL2 and C++
 -> Find and fix bugs
 
 # bug-fixes
--> Fixed timer-related bugs <br>
--> (...) more bugs to fix
+-> Fix timer-related bugs (done) <br>
+-> Fix memory leaks (when checking and removing a word from the word vector) (todo) <br>
+-> Fix memory leaks (after setting an animation, the object is not destroyed after the animation is finished) (todo) <br>
 
 # downloads 
 (coming soon)
