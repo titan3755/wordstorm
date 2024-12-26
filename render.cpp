@@ -110,6 +110,17 @@ Render::Render(SDL_Window* window, SDL_Renderer* renderer, int scrn_width, int s
 	this->game_over_screen_high_score_text_color.g = 255;
 	this->game_over_screen_high_score_text_color.b = 255;
 	this->game_over_screen_high_score_text_texture = nullptr;
+	this->icon_one_status = false;
+	this->icon_two_status = false;
+	this->icon_three_status = false;
+	this->icon_one_texture = nullptr;
+	this->icon_two_texture = nullptr;
+	this->icon_three_texture = nullptr;
+	this->icon_one_rect = { 0, 0, 0, 0 };
+	this->icon_two_rect = { 0, 0, 0, 0 };
+	this->icon_three_rect = { 0, 0, 0, 0 };
+	this->status_bar_box = { 0, 0, 0, 0 };
+	this->hollow_rect_color = { 255, 255, 255, 255 };
 }
 
 // destructor
@@ -131,6 +142,8 @@ Render::~Render() {
 	cleanupScoreText();
 	// cleanup the timer text
 	cleanupTimerText();
+	// cleanup the status bar
+	cleanupStatusBarBox();
 	// cleanup the textures of the alphabet letters
 	cleanupAlphabetTextures();
 	// cleanup the positions of the alphabet letters
@@ -308,9 +321,9 @@ void Render::setupUpperScreenBackground() {
 	upper_screen_background->w = scrn_width;
 	upper_screen_background->h = (scrn_height * 75) / 100;
 	upper_screen_background_color = new SDL_Color();
-	upper_screen_background_color->r = 255;
-	upper_screen_background_color->g = 255;
-	upper_screen_background_color->b = 255;
+	upper_screen_background_color->r = 0;
+	upper_screen_background_color->g = 0;
+	upper_screen_background_color->b = 0;
 	upper_screen_background_color->a = 255;
 }
 
@@ -332,9 +345,9 @@ void Render::setupLowerScreenBackground() {
 void Render::setupHighScoreText(TTF_Font* font, std::string text, int x, int y) {
 	high_score_text_font = font;
 	high_score_text = text;
-	high_score_text_color.r = 0;
-	high_score_text_color.g = 0;
-	high_score_text_color.b = 0;
+	high_score_text_color.r = 255;
+	high_score_text_color.g = 255;
+	high_score_text_color.b = 255;
 	high_score_text_color.a = 255;
 	high_score_text_texture = nullptr;
 	high_score_text_rect.x = x;
@@ -370,9 +383,9 @@ void Render::setupHighScoreText(TTF_Font* font, std::string text, int x, int y) 
 void Render::setupScoreText(TTF_Font* font, std::string text, int x, int y) {
 	score_text_font = font;
 	score_text = text;
-	score_text_color.r = 0;
-	score_text_color.g = 0;
-	score_text_color.b = 0;
+	score_text_color.r = 255;
+	score_text_color.g = 255;
+	score_text_color.b = 255;
 	score_text_color.a = 255;
 	score_text_texture = nullptr;
 	score_text_rect.x = x;
@@ -408,9 +421,9 @@ void Render::setupScoreText(TTF_Font* font, std::string text, int x, int y) {
 void Render::setupTimerText(TTF_Font* font, std::string text, int x, int y) {
 	timer_text_font = font;
 	timer_text = text;
-	timer_text_color.r = 0;
-	timer_text_color.g = 0;
-	timer_text_color.b = 0;
+	timer_text_color.r = 255;
+	timer_text_color.g = 255;
+	timer_text_color.b = 255;
 	timer_text_color.a = 255;
 	timer_text_texture = nullptr;
 	timer_text_rect.x = x;
@@ -440,6 +453,58 @@ void Render::setupTimerText(TTF_Font* font, std::string text, int x, int y) {
 
 	// cleanup the surface
 	SDL_FreeSurface(text_surface);
+}
+
+// the status bar box
+void Render::setupStatusBarBox(int x, int y, int w, int h, std::string icon_one_path, std::string icon_two_path, std::string icon_three_path) {
+	status_bar_box.x = x;
+	status_bar_box.y = y;
+	status_bar_box.w = w;
+	status_bar_box.h = h;
+
+	// hollow rect color
+	hollow_rect_color.r = 255;
+	hollow_rect_color.g = 255;
+	hollow_rect_color.b = 255;
+	hollow_rect_color.a = 255;
+
+	// icon textures
+	icon_one_texture = IMG_LoadTexture(renderer, icon_one_path.c_str());
+	if (icon_one_texture == NULL) {
+		std::cerr << "IMG_LoadTexture Error: " << IMG_GetError() << std::endl;
+		return;
+	}
+	icon_two_texture = IMG_LoadTexture(renderer, icon_two_path.c_str());
+	if (icon_two_texture == NULL) {
+		std::cerr << "IMG_LoadTexture Error: " << IMG_GetError() << std::endl;
+		return;
+	}
+	icon_three_texture = IMG_LoadTexture(renderer, icon_three_path.c_str());
+	if (icon_three_texture == NULL) {
+		std::cerr << "IMG_LoadTexture Error: " << IMG_GetError() << std::endl;
+		return;
+	}
+
+	// icon rects
+	icon_one_rect.x = x + 10;
+	icon_one_rect.y = y + 10;
+	icon_one_rect.w = 20;
+	icon_one_rect.h = 20;
+
+	icon_two_rect.x = x + 40;
+	icon_two_rect.y = y + 10;
+	icon_two_rect.w = 20;
+	icon_two_rect.h = 20;
+
+	icon_three_rect.x = x + 70;
+	icon_three_rect.y = y + 10;
+	icon_three_rect.w = 20;
+	icon_three_rect.h = 20;
+
+	// icon statuses
+	icon_one_status = false;
+	icon_two_status = false;
+	icon_three_status = false;
 }
 
 // create the alphabet textures
@@ -537,8 +602,8 @@ void Render::setupAlphabetStates(char keys[], int size) {
 }
 
 // setup the words
-void Render::setupWord(std::string word) {
-	Word* w = new Word(renderer, TTF_OpenFont("assets/KOMIKAX.ttf", 30), word, scrn_width, scrn_height);
+void Render::setupWord(std::string word, const char* font_path) {
+	Word* w = new Word(renderer, TTF_OpenFont(font_path, 30), word, scrn_width, scrn_height);
 	w->setupWord();
 	words.push_back(w);
 }
@@ -745,6 +810,28 @@ void Render::updateTimerPosition(int x, int y) {
 	timer_text_rect.y = y;
 }
 
+// update the status bar box position
+void Render::updateStatusBarBoxPosition(int x, int y) {
+	status_bar_box.x = x;
+	status_bar_box.y = y;
+
+	// update the icon positions
+	icon_one_rect.x = x + 10;
+	icon_one_rect.y = y + 10;
+	icon_two_rect.x = x + 40;
+	icon_two_rect.y = y + 10;
+	icon_three_rect.x = x + 70;
+	icon_three_rect.y = y + 10;
+}
+
+// update the status bar statuses
+void Render::updateStatusBarBoxStatus(bool icon_one_status, bool icon_two_status, bool icon_three_status) {
+	this->icon_one_status = icon_one_status;
+	this->icon_two_status = icon_two_status;
+	this->icon_three_status = icon_three_status;
+}
+
+
 // an update function which will update the state of the alphabet letters
 // each time the alphabets are updated, the previous state will be reset
 // also new textures will be created for the updated alphabets
@@ -842,6 +929,12 @@ void Render::cleanupTimerText() {
 	SDL_DestroyTexture(timer_text_texture);
 }
 
+void Render::cleanupStatusBarBox() {
+	SDL_DestroyTexture(icon_one_texture);
+	SDL_DestroyTexture(icon_two_texture);
+	SDL_DestroyTexture(icon_three_texture);
+}
+
 void Render::cleanupAlphabetTextures() {
 	for (auto it = alphabet_textures.begin(); it != alphabet_textures.end(); it++) {
 		for (auto it2 = it->second.begin(); it2 != it->second.end(); it2++) {
@@ -918,6 +1011,24 @@ void Render::renderScoreText() {
 // render the timer text
 void Render::renderTimerText() {
 	SDL_RenderCopy(renderer, timer_text_texture, nullptr, &timer_text_rect);
+}
+
+// render the status bar box
+void Render::renderStatusBarBox() {
+	// render the status bar box
+	SDL_SetRenderDrawColor(renderer, hollow_rect_color.r, hollow_rect_color.g, hollow_rect_color.b, hollow_rect_color.a);
+	SDL_RenderDrawRect(renderer, &status_bar_box);
+
+	// render the icons
+	if (icon_one_status) {
+		SDL_RenderCopy(renderer, icon_one_texture, nullptr, &icon_one_rect);
+	}
+	if (icon_two_status) {
+		SDL_RenderCopy(renderer, icon_two_texture, nullptr, &icon_two_rect);
+	}
+	if (icon_three_status) {
+		SDL_RenderCopy(renderer, icon_three_texture, nullptr, &icon_three_rect);
+	}
 }
 
 // a render function which will render the alphabet letters on the screen
@@ -1007,6 +1118,18 @@ std::vector<Animation*> Render::getAnimations() const {
 
 std::string Render::getScoreText() const {
 	return score_text;
+}
+
+bool Render::getIconOneStatus() const {
+	return icon_one_status;
+}
+
+bool Render::getIconTwoStatus() const {
+	return icon_two_status;
+}
+
+bool Render::getIconThreeStatus() const {
+	return icon_three_status;
 }
 
 // setters

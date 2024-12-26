@@ -81,3 +81,7 @@ int Word::getWordVelocity() {
 SDL_Texture* Word::getWordTexture() {
 	return texture;
 }
+
+void Word::setVelocity(int velocity) {
+	this->velocity = velocity;
+}

@@ -31,6 +31,8 @@ public:
 	SDL_Rect* getWordPosition();
 	int getWordVelocity();
 	SDL_Texture* getWordTexture();
+	// setters
+	void setVelocity(int velocity);
 private:
 	// the word will have a texture, position, velocity
 	// the texture will be generated as needed and the position will be somewhere outside the screen

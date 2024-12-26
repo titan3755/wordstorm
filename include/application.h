@@ -5,6 +5,9 @@
 
 #include <iostream>
 #include <fstream>
+#include <algorithm>
+#include <vector>
+#include <sstream>
 #include <render.h>
 #include <word.h>
 #include <string>
@@ -30,6 +33,7 @@ private:
 	SDL_Renderer* renderer;
 	bool running;
 	int high_score;
+	std::vector<std::string> words_file;
 };
 
 #endif // APPLICATION_H

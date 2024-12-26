@@ -30,6 +30,7 @@ public:
 	void setupHighScoreText(TTF_Font* font, std::string text, int x, int y);
 	void setupScoreText(TTF_Font* font, std::string text, int x, int y);
 	void setupTimerText(TTF_Font* font, std::string text, int x, int y);
+	void setupStatusBarBox(int x, int y, int w, int h, std::string icon_one_path, std::string icon_two_path, std::string icon_three_path);
 	// a setup function which creates the textures for every english alphabet letter and there will be two sets of
 	// textures, one for the normal state and one for the moment when that specific key is pressed
 	// the sets of textures will be stored in a map and each value will be an array of SDL_Texture pointers
@@ -55,7 +56,7 @@ public:
 	// all of the above except the texture and position will be random within a certain range
 	// the texture will be generated as needed and the position will be somewhere outside the screen
 	// the angle will be such that the word will move across the viewable screen
-	void setupWord(std::string word);
+	void setupWord(std::string word, const char* font_path);
 	// setup function for animation
 	void setupAnimation(std::string word, int font_size, SDL_Color init_clr, SDL_Rect position);
 
@@ -72,6 +73,8 @@ public:
 	void updateTimerText(std::string text);
 	void updateTimerColor(SDL_Color color);
 	void updateTimerPosition(int x, int y);
+	void updateStatusBarBoxPosition(int x, int y);
+	void updateStatusBarBoxStatus(bool iconOneStatus, bool iconTwoStatus, bool iconThreeStatus);
 	// an update function which will update the state of the alphabet letters
 	// the argument will be the key which is pressed and the state of that key will be updated
 	// the rest of the keys will be updated to the normal state
@@ -104,6 +107,7 @@ public:
 	void cleanupHighScoreText();
 	void cleanupScoreText();
 	void cleanupTimerText();
+	void cleanupStatusBarBox();
 	// a cleanup function which will cleanup the textures of the alphabet letters
 	// the function will take the map of the textures and cleanup all the textures
 	void cleanupAlphabetTextures();
@@ -125,6 +129,7 @@ public:
 	void renderHighScoreText();
 	void renderScoreText();
 	void renderTimerText();
+	void renderStatusBarBox();
 	// a render function which will render the alphabet letters on the screen
 	// the function will take the current state of the alphabet letters and render them accordingly
 	// if the state is normal, the normal texture will be rendered and if the state is pressed, the pressed texture will be rendered
@@ -155,6 +160,11 @@ public:
 
 	// getters for the score text
 	std::string getScoreText() const;
+
+	// get status
+	bool getIconOneStatus() const;
+	bool getIconTwoStatus() const;
+	bool getIconThreeStatus() const;
 
 private:
 	SDL_Window* window;
@@ -202,6 +212,19 @@ private:
 	std::vector<Word*> words;
 	// a vector to store the animations
 	std::vector<Animation*> animations;
+
+	// status bar box
+	SDL_Rect status_bar_box;
+	SDL_Texture* icon_one_texture;
+	SDL_Texture* icon_two_texture;
+	SDL_Texture* icon_three_texture;
+	bool icon_one_status;
+	bool icon_two_status;
+	bool icon_three_status;
+	SDL_Rect icon_one_rect;
+	SDL_Rect icon_two_rect;
+	SDL_Rect icon_three_rect;
+	SDL_Color hollow_rect_color;
 
 	// properties for the title screen
 	SDL_Texture* title_screen_title_text_texture;
