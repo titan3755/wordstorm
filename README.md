@@ -14,8 +14,10 @@ A quick-typing minigame made with SDL2 and C++
 
 # bug-fixes
 -> Fix timer-related bugs (done) <br>
--> Fix memory leaks (when checking and removing a word from the word vector) (todo) <br>
--> Fix memory leaks (after setting an animation, the object is not destroyed after the animation is finished) (todo) <br>
+-> Fix memory leaks (when checking and removing a word from the word vector) (done) <br>
+-> Fix memory leaks (after setting an animation, the object is not destroyed after the animation is finished) (done) <br>
+-> (...)
 
 # downloads 
-(coming soon)
+-> Visual Studio 2022 project dl: [https://www.mediafire.com/file/jz08vcafhfe3m1n/wordstorm-sdl2.7z/file](https://www.mediafire.com/file/jz08vcafhfe3m1n/wordstorm-sdl2.7z/file) <br>
+-> Windows Binary: [https://www.mediafire.com/file/pltv72xvjdxsvyn/wordstorm_bin_windows.7z/file](https://www.mediafire.com/file/pltv72xvjdxsvyn/wordstorm_bin_windows.7z/file)
