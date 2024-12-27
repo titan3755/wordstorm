@@ -143,22 +143,44 @@ void Application::init() {
 }
 
 void Application::run() {
+	// setup all fonts
+	std::vector<TTF_Font*> fonts;
+	fonts.push_back(TTF_OpenFont("assets/LEMONMILK-Regular.otf", 50));
+	fonts.push_back(TTF_OpenFont("assets/KOMIKAX.ttf", 24));
+	fonts.push_back(TTF_OpenFont("assets/Nexa-Heavy.ttf", 24));
+	fonts.push_back(TTF_OpenFont("assets/HeyComic.ttf", 48));
+	// setup secondary font vector
+	std::vector<TTF_Font*> fonts_secondary;
+	fonts_secondary.push_back(TTF_OpenFont("assets/LEMONMILK-Regular.otf", 30));
+	fonts_secondary.push_back(TTF_OpenFont("assets/KOMIKAX.ttf", 30));
+	fonts_secondary.push_back(TTF_OpenFont("assets/Nexa-Heavy.ttf", 30));
+	fonts_secondary.push_back(TTF_OpenFont("assets/HeyComic.ttf", 30));
+	fonts_secondary.push_back(TTF_OpenFont("assets/American Captain.ttf", 30));
+	fonts_secondary.push_back(TTF_OpenFont("assets/BebasNeue-Regular.ttf", 30));
+	fonts_secondary.push_back(TTF_OpenFont("assets/Coolvetica Rg.otf", 30));
+	fonts_secondary.push_back(TTF_OpenFont("assets/Evil Empire.otf", 30));
+	fonts_secondary.push_back(TTF_OpenFont("assets/Magic Sky.otf", 30));
+	fonts_secondary.push_back(TTF_OpenFont("assets/VAGUARD BASIC.ttf", 30));
+	// index 0 : LEMONMILK-Regular.otf
+	// index 1 : KOMIKAX.ttf
+	// index 2 : Nexa-Heavy.ttf
+	// index 3 : HeyComic.ttf
 	// setup the state
 	State state = State::START;
 	// setup the render
 	Render render(window, renderer, scrn_width, scrn_height);
 	// setup the components
-	render.setupTitleScreen(TTF_OpenFont("assets/LEMONMILK-Regular.otf", 50));
+	render.setupTitleScreen(fonts[0]);
 	render.setupScreenHorizontalDivider();
 	render.setupUpperScreenLeftmostVerticalDivider();
 	render.setupUpperScreenBackground();
 	render.setupLowerScreenBackground();
-	render.setupHighScoreText(TTF_OpenFont("assets/KOMIKAX.ttf", 24), "High Score: " + std::to_string(high_score), 30, 10);
-	render.setupScoreText(TTF_OpenFont("assets/KOMIKAX.ttf", 24), "Score: 0", 280, 10);
-	render.setupTimerText(TTF_OpenFont("assets/KOMIKAX.ttf", 24), "Time: 0", 430, 10);
+	render.setupHighScoreText(fonts[1], "High Score: " + std::to_string(high_score), 30, 10);
+	render.setupScoreText(fonts[1], "Score: 0", 280, 10);
+	render.setupTimerText(fonts[1], "Time: 0", 430, 10);
 	// setup the status bar box at right side of the screen
 	render.setupStatusBarBox(scrn_width - 200, 0 + 12, 100, 40, "assets/iconone.png", "assets/icontwo.png", "assets/iconthree.png");
-	render.setupAlphabetTextures(TTF_OpenFont("assets/Nexa-Heavy.ttf", 24));
+	render.setupAlphabetTextures(fonts[2]);
 	render.setupAlphabetPositions();
 	char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	render.setupAlphabetStates(alphabet, 26);
@@ -280,8 +302,8 @@ void Application::run() {
 					// select random word from the words_rand vector
 					std::string word_sel = words_rand[rand() % words_rand.size()];
 					// randomly select font path
-					const char* font_path = font_paths[rand() % font_paths.size()];
-					render.setupWord(word_sel, font_path);
+					TTF_Font* font_selc = fonts_secondary[rand() % fonts_secondary.size()];
+					render.setupWord(word_sel, font_selc);
 				}
 			}
 			else if (timer >= 2.0f && !spawn_rate_changed) {
@@ -289,8 +311,8 @@ void Application::run() {
 				// select random word from the words_rand vector
 				std::string word_sel = words_rand[rand() % words_rand.size()];
 				// randomly select font path
-				const char* font_path = font_paths[rand() % font_paths.size()];
-				render.setupWord(word_sel, font_path);
+				TTF_Font* font_selc = fonts_secondary[rand() % fonts_secondary.size()];
+				render.setupWord(word_sel, font_selc);
 			}
 
 			// spawn a big word every 5 seconds
@@ -301,8 +323,8 @@ void Application::run() {
 				// select random big word from the big_words_rand vector
 				std::string word_sel = big_words_rand[rand() % big_words_rand.size()];
 				// randomly select font path
-				const char* font_path = font_paths[rand() % font_paths.size()];
-				render.setupWord(word_sel, font_path);
+				TTF_Font* font_selc = fonts_secondary[rand() % fonts_secondary.size()];
+				render.setupWord(word_sel, font_selc);
 			}
 
 			// change vel_val and velocity_changed variables to normal every 3 seconds
@@ -370,9 +392,11 @@ void Application::run() {
 					// remove 2 seconds from the timer
 					timer_play -= 5;
 					// end animation (red)
-					render.setupAnimation(words[i]->getWord(), 24, { 255, 0, 0 }, *words[i]->getWordPosition());
+					render.setupAnimation(words[i]->getWord(), fonts[1], 24, {255, 0, 0}, *words[i]->getWordPosition());
 					// remove the word
 					words.erase(words.begin() + i);
+					// destroy the word
+					render.getWords()[i]->cleanupWord();
 					// update the words
 					render.setWords(words);
 					// update the score
@@ -437,14 +461,27 @@ void Application::run() {
 						}
 					}
 					// end animation (green)
-					render.setupAnimation(word, 24, { 0, 255, 0 }, *words[i]->getWordPosition());
+					render.setupAnimation(word, fonts[1], 24, {0, 255, 0}, *words[i]->getWordPosition());
 					// remove the word
 					words.erase(words.begin() + i);
+					// destroy the word
+					render.getWords()[i]->cleanupWord();
 					// update the words
 					render.setWords(words);
 					key_pressed_str.erase(key_pressed_str.find(word), word.length());
 					render.updateScore(score);
 					break;
+				}
+			}
+
+			// cleanup the animations
+			std::vector<Animation*> animations = render.getAnimations();
+			// if opacity is less than or equal to 1, remove the animation
+			for (int i = 0; i < animations.size(); i++) {
+				if (animations[i]->getOpacity() <= 1) {
+					animations.erase(animations.begin() + i);
+					render.getAnimations()[i]->cleanupAnimation();
+					render.setAnimations(animations);
 				}
 			}
 
@@ -501,9 +538,14 @@ void Application::run() {
 
 				// clear the words
 				words.clear();
+				// destroy the words
+				render.cleanupWords();
 				render.setWords(words);
 
 				// clear the animations
+				animations.clear();
+				// destroy the animations
+				render.cleanupAnimations();
 				render.setAnimations(std::vector<Animation*>());
 
 				// reset the score
@@ -550,6 +592,18 @@ void Application::run() {
 		}
 		SDL_RenderPresent(renderer);
 	}
+	// clean the fonts
+	for (int i = 0; i < fonts.size(); i++) {
+		TTF_CloseFont(fonts[i]);
+	}
+	for (int i = 0; i < fonts_secondary.size(); i++) {
+		TTF_CloseFont(fonts_secondary[i]);
+	}
+
+	// cleanup the words
+	render.cleanupWords();
+	// cleanup the animations
+	render.cleanupAnimations();
 }
 
 void Application::cleanup() {

@@ -64,6 +64,10 @@ SDL_Color* Animation::getInitColor() {
 	return &init_color;
 }
 
+int Animation::getOpacity() {
+	return opacity;
+}
+
 std::string Animation::getWord() {
 	return word;
 }

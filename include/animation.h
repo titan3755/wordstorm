@@ -33,6 +33,7 @@ public:
 	void cleanupAnimation();
 	// getter functions for the animation
 	SDL_Color* getInitColor();
+	int getOpacity();
 	std::string getWord();
 	SDL_Rect* getWordPosition();
 	int getWordFontSize();

@@ -602,15 +602,15 @@ void Render::setupAlphabetStates(char keys[], int size) {
 }
 
 // setup the words
-void Render::setupWord(std::string word, const char* font_path) {
-	Word* w = new Word(renderer, TTF_OpenFont(font_path, 30), word, scrn_width, scrn_height);
+void Render::setupWord(std::string word, TTF_Font* font_selc) {
+	Word* w = new Word(renderer, font_selc, word, scrn_width, scrn_height);
 	w->setupWord();
 	words.push_back(w);
 }
 
 // setup the animation
-void Render::setupAnimation(std::string word, int font_size, SDL_Color init_clr, SDL_Rect position) {
-	Animation* a = new Animation(renderer, TTF_OpenFont("assets/KOMIKAX.ttf", font_size), init_clr, word, font_size, position);
+void Render::setupAnimation(std::string word, TTF_Font* font_selc, int font_size, SDL_Color init_clr, SDL_Rect position) {
+	Animation* a = new Animation(renderer, font_selc, init_clr, word, font_size, position);
 	a->setupAnimation();
 	animations.push_back(a);
 }
@@ -620,6 +620,11 @@ void Render::setupAnimation(std::string word, int font_size, SDL_Color init_clr,
 // update the high score text
 void Render::updateHighScoreText(std::string text) {
 	high_score_text = text;
+
+	// free the previous texture
+	if (high_score_text_texture != nullptr) {
+		SDL_DestroyTexture(high_score_text_texture);
+	}
 
 	// render the text to a texture
 	SDL_Surface* text_surface = TTF_RenderText_Solid(high_score_text_font, high_score_text.c_str(), high_score_text_color);
@@ -650,7 +655,7 @@ void Render::updateHighScore(int high_score) {
 	updateHighScoreText(text);
 }
 
-/// update the position of the high score text
+// update the position of the high score text
 void Render::updateHighScorePosition(int x, int y) {
 	high_score_text_rect.x = x;
 	high_score_text_rect.y = y;
@@ -659,6 +664,11 @@ void Render::updateHighScorePosition(int x, int y) {
 // update the color of the high score text
 void Render::updateHighScoreColor(SDL_Color color) {
 	high_score_text_color = color;
+
+	// free the previous texture
+	if (high_score_text_texture != nullptr) {
+		SDL_DestroyTexture(high_score_text_texture);
+	}
 
 	// render the text to a texture
 	SDL_Surface* text_surface = TTF_RenderText_Solid(high_score_text_font, high_score_text.c_str(), high_score_text_color);
@@ -685,6 +695,11 @@ void Render::updateHighScoreColor(SDL_Color color) {
 // update the score text
 void Render::updateScoreText(std::string text) {
 	score_text = text;
+
+	// free the previous texture
+	if (score_text_texture != nullptr) {
+		SDL_DestroyTexture(score_text_texture);
+	}
 
 	// render the text to a texture
 	SDL_Surface* text_surface = TTF_RenderText_Solid(score_text_font, score_text.c_str(), score_text_color);
@@ -717,6 +732,11 @@ void Render::updateScore(int score) {
 // update the color of the score text
 void Render::updateScoreColor(SDL_Color color) {
 	score_text_color = color;
+
+	// free the previous texture
+	if (score_text_texture != nullptr) {
+		SDL_DestroyTexture(score_text_texture);
+	}
 
 	// render the text to a texture
 	SDL_Surface* text_surface = TTF_RenderText_Solid(score_text_font, score_text.c_str(), score_text_color);
@@ -756,6 +776,11 @@ void Render::updateTimer(int timer) {
 void Render::updateTimerText(std::string text) {
 	timer_text = text;
 
+	// free the previous texture
+	if (timer_text_texture != nullptr) {
+		SDL_DestroyTexture(timer_text_texture);
+	}
+
 	// render the text to a texture
 	SDL_Surface* text_surface = TTF_RenderText_Solid(timer_text_font, timer_text.c_str(), timer_text_color);
 	if (text_surface == nullptr) {
@@ -781,6 +806,11 @@ void Render::updateTimerText(std::string text) {
 // update the color of the timer text
 void Render::updateTimerColor(SDL_Color color) {
 	timer_text_color = color;
+
+	// free the previous texture
+	if (timer_text_texture != nullptr) {
+		SDL_DestroyTexture(timer_text_texture);
+	}
 
 	// render the text to a texture
 	SDL_Surface* text_surface = TTF_RenderText_Solid(timer_text_font, timer_text.c_str(), timer_text_color);
@@ -966,8 +996,16 @@ void Render::cleanupGameOverScreen() {
 	SDL_DestroyTexture(game_over_screen_high_score_text_texture);
 }
 
+void Render::cleanupWords() {
+	for (int i = 0; i < words.size(); i++) {
+		words[i]->cleanupWord();
+		delete words[i];
+	}
+}
+
 void Render::cleanupAnimations() {
 	for (int i = 0; i < animations.size(); i++) {
+		animations[i]->cleanupAnimation();
 		delete animations[i];
 	}
 }

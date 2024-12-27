@@ -56,9 +56,9 @@ public:
 	// all of the above except the texture and position will be random within a certain range
 	// the texture will be generated as needed and the position will be somewhere outside the screen
 	// the angle will be such that the word will move across the viewable screen
-	void setupWord(std::string word, const char* font_path);
+	void setupWord(std::string word, TTF_Font* font_selc);
 	// setup function for animation
-	void setupAnimation(std::string word, int font_size, SDL_Color init_clr, SDL_Rect position);
+	void setupAnimation(std::string word, TTF_Font* font_selc, int font_size, SDL_Color init_clr, SDL_Rect position);
 
 	// update functions for different components
 	void updateHighScoreText(std::string text);
@@ -117,6 +117,7 @@ public:
 	// a cleanup function which will cleanup the states of the alphabet letters
 	// the function will take the map of the states and cleanup
 	void cleanupAlphabetStates();
+	void cleanupWords();
 	void cleanupAnimations();
 
 	// render functions for different components (will be used in the game loop)
