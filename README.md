@@ -1,9 +1,9 @@
 # wordstorm
 A quick-typing minigame made with SDL2 and C++
 <br> <br>
-![wordstorm](https://i.ibb.co.com/pyVvRzp/Gto-E0d-OJb-QNk.png)
-<br> <br>
 ![wordstorm-two](https://i.ibb.co.com/8jggk3z/be4211e9-2d14-4528-ae1e-5de90764edd4.jpg)
+<br> <br>
+![wordstorm](https://i.ibb.co.com/pyVvRzp/Gto-E0d-OJb-QNk.png)
 
 # feature-additions (to-do)
 -> UI improvements (minor) (done) <br>
